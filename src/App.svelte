@@ -50,7 +50,7 @@
 					<Spacer />
 				</HStack>
 				<HStack>
-					<Text>Right Click - create or delete skill.</Text>
+					<Text>Right Click - create or edit or delete skill.</Text>
 					<Spacer />
 				</HStack>
 				<HStack>

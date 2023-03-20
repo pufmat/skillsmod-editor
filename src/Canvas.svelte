@@ -116,8 +116,13 @@
 			const oldLength = skills.length;
 			skills = skills.filter(skill => {
 				if(isMouseInsideSkill(mouse, skill)){
-					removeConnections(skill);
-					return false;
+					if(skill.definition === selected){
+						removeConnections(skill);
+						return false;
+					}else{
+						skill.definition = selected;
+						return true;
+					}
 				}else{
 					return true;
 				}
