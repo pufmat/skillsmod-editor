@@ -46,7 +46,8 @@
 		const skillsMap = new Map<string, editor.Skill>;
 
 		skills = Object.entries(skillsJson).map(entry => {
-			const skill ={
+			const skill: editor.Skill = {
+				name: entry[0],
 				definition: definitions.get(entry[1].definition),
 				pos: {
 					x: entry[1].x,
@@ -54,7 +55,7 @@
 				},
 				root: entry[1].root ?? false,
 			};
-			skillsMap.set(entry[0], skill);
+			skillsMap.set(skill.name, skill);
 			return skill;
 		});
 
@@ -66,7 +67,7 @@
 
 	function exportSkills(){
 		editor.saveJson(skills.reduce((json, skill) => {
-			json[skill.pos.x + "_" + skill.pos.y] = {
+			json[skill.name] = {
 				definition: skill.definition.name,
 				x: skill.pos.x,
 				y: skill.pos.y,
@@ -80,7 +81,7 @@
 		editor.saveJson(connections.map(connection => {
 			return [0, 1].map(skillIndex => {
 				const skill = connection[skillIndex];
-				return skill.pos.x + "_" + skill.pos.y;
+				return skill.name;
 			})
 		}), "connections.json");
 	}

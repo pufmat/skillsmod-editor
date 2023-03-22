@@ -130,15 +130,21 @@
 			if(skills.length === oldLength){
 				const pos = snapToGrid(mouse);
 				if(skills.find(skill => skill.pos.x == pos.x && skill.pos.y == pos.y) === undefined){
-					const skill = {
-						name: null,
+					let newName: string;
+					do{
+						newName = editor.randomName();
+					}while(skills.find(skill => skill.name === newName) !== undefined);
+
+					const newSkill: editor.Skill = {
+						name: newName,
 						definition: selected,
 						pos: pos,
 						root: false
 					};
-					skills.push(skill);
+					skills.push(newSkill);
+
 					if(previousSkill !== null){
-						toggleConnection(skill, previousSkill);
+						toggleConnection(newSkill, previousSkill);
 					}
 				}
 			}

@@ -9,6 +9,7 @@ export interface Definition {
 }
 
 export interface Skill {
+	name: string,
 	definition: Definition | null,
 	pos: Position,
 	root: boolean
@@ -48,6 +49,10 @@ export function randomColor(): string {
 	default:
 		throw new Error();
 	}
+}
+
+export function randomName(): string {
+	return Array.from(Array(16), () => Math.floor(Math.random() * 36).toString(36)).join("");
 }
 
 export async function readJson(file: File){
