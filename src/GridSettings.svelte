@@ -26,12 +26,12 @@
 		<Text>Size:</Text>
 		<Spacer />
 	</HStack>
-	<IntegerInput bind:value={gridSize} disabled={gridType == editor.GridType.NONE} />
+	<IntegerInput bind:value={gridSize} disabled={gridType === editor.GridType.NONE} />
 	<HStack>
 		<Text>Count:</Text>
 		<Spacer />
 	</HStack>
-	<IntegerInput bind:value={gridCount} disabled={gridType == editor.GridType.NONE} />
+	<IntegerInput bind:value={gridCount} disabled={gridType === editor.GridType.NONE} />
 </div>
 
 

@@ -63,7 +63,7 @@
 					x: mouse.x - dragX,
 					y: mouse.y - dragY
 				});
-				if(skills.find(skill => skill.pos.x == newPos.x && skill.pos.y == newPos.y) === undefined){
+				if(skills.find(skill => skill.pos.x === newPos.x && skill.pos.y === newPos.y) === undefined){
 					draggedSkill.pos = newPos;
 				}
 			}
@@ -76,7 +76,7 @@
 		mouseX = event.offsetX;
 		mouseY = event.offsetY;
 
-		if(event.button == editor.Button.LEFT){
+		if(event.button === editor.Button.LEFT){
 			const mouse = transformPosition({x: mouseX, y: mouseY});
 			draggedSkill = skills.find((skill) => isMouseInsideSkill(mouse, skill)) ?? null;
 			if(draggedSkill === null){
@@ -100,12 +100,12 @@
 
 		if(event.button === editor.Button.LEFT){
 			dragging = false;
-		}else if(event.button == editor.Button.MIDDLE){
+		}else if(event.button === editor.Button.MIDDLE){
 			const currentSkill = skills.find((skill) => isMouseInsideSkill(mouse, skill)) ?? null;
 			if(currentSkill === null || previousSkill === null){
 				previousSkill = currentSkill;
 			}else{
-				if(currentSkill == previousSkill){
+				if(currentSkill === previousSkill){
 					toggleRoot(currentSkill);
 				}else{
 					toggleConnection(currentSkill, previousSkill);
@@ -129,7 +129,7 @@
 			});
 			if(skills.length === oldLength){
 				const pos = snapToGrid(mouse);
-				if(skills.find(skill => skill.pos.x == pos.x && skill.pos.y == pos.y) === undefined){
+				if(skills.find(skill => skill.pos.x === pos.x && skill.pos.y === pos.y) === undefined){
 					let newName: string;
 					do{
 						newName = editor.randomName();
@@ -196,7 +196,7 @@
 					matches++;
 				}
 			}
-			if(matches == 2){
+			if(matches === 2){
 				connections.splice(connectionIndex, 1);
 				return;
 			}
@@ -250,7 +250,7 @@
 				let i;
 				let j;
 
-				if(gridType == editor.GridType.HEX_FLAT){
+				if(gridType === editor.GridType.HEX_FLAT){
 					i = pos.x;
 					j = pos.y;
 				}else{
@@ -268,7 +268,7 @@
 				i = l * tmpSize - m * tmpSize / 2;
 				j = -m * gridSize;
 
-				if(gridType == editor.GridType.HEX_FLAT){
+				if(gridType === editor.GridType.HEX_FLAT){
 					return {x: i, y: j};
 				}else{
 					return {x: j, y: i};
@@ -329,7 +329,7 @@
 				for(let j = Math.max(0, -i) - gridCount; j <= Math.min(0, -i) + gridCount; j++){
 					const k = (j + i / 2) * Math.sqrt(3) / 1.5
 
-					if(gridType == editor.GridType.HEX_FLAT){
+					if(gridType === editor.GridType.HEX_FLAT){
 						drawDot(k, i);
 					}else{
 						drawDot(i, k);
@@ -385,7 +385,7 @@
 	function drawDot(x: number, y: number){
 		ctx.fillStyle = "#aaaaaa";
 		ctx.beginPath();
-		ctx.arc(gridSize * x, gridSize * y, x == 0 && y == 0 ? 8 : 5, 0, Math.PI * 2);
+		ctx.arc(gridSize * x, gridSize * y, x === 0 && y === 0 ? 8 : 5, 0, Math.PI * 2);
 		ctx.fill();
 	}
 

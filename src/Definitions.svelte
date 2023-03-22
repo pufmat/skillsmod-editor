@@ -32,7 +32,7 @@
 			definitions.set(newName, modalDefinition);
 		}else{
 			for(const skill of skills){
-				if(skill.definition == modalDefinition){
+				if(skill.definition === modalDefinition){
 					skill.definition = newDefinition;
 				}
 			}
