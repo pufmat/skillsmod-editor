@@ -342,7 +342,7 @@
 
 	function drawSkills(){
 		for(const skill of skills){
-			if(skill.definition === undefined){
+			if(skill.definition === null){
 				ctx.fillStyle = "#666666";
 			}else{
 				ctx.fillStyle = skill.definition.color;

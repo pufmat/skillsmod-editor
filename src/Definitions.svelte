@@ -51,7 +51,7 @@
 
 	$: {
 		if(Array.from(definitions.values()).find(definition => definition === selected) === undefined){
-			selected = definitions.values().next().value;
+			selected = definitions.values().next().value ?? null;
 		}
 	}
 </script>
