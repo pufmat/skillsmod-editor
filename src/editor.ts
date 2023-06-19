@@ -5,7 +5,8 @@ export interface Position {
 
 export interface Definition {
 	name: string,
-	color: string
+	color: string,
+	data: string
 }
 
 export interface Skill {
