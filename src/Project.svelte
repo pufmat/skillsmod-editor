@@ -3,10 +3,10 @@
 	import Button from "./lib/Button.svelte";
 	import FileInput from "./lib/FileInput.svelte";
 	import HStack from "./lib/HStack.svelte";
-	import VStack from "./lib/VStack.svelte";
 	import Spacer from "./lib/Spacer.svelte";
 	import Text from "./lib/Text.svelte";
 	import Divider from "./lib/Divider.svelte";
+    import Checkbox from "./lib/Checkbox.svelte";
 
 	export let definitions: Map<string, editor.Definition>;
 	export let skills: editor.Skill[];
@@ -15,6 +15,8 @@
 	let definitionsFile: File | undefined;
 	let skillsFile: File | undefined;
 	let connectionsFile: File | undefined;
+
+	let saveMetadata = true;
 
 	async function importAll(){
 		if(definitionsFile === undefined || skillsFile === undefined || connectionsFile === undefined){
@@ -35,11 +37,12 @@
 			return;
 		}
 
-		definitions = new Map(Object.keys(definitionsJson).map(name => [
+		definitions = new Map(Object.entries(definitionsJson).map(([name, data]) => [
 			name,
 			{
 				name: name,
-				color: editor.randomColor()
+				color: data["editor-color"] ?? editor.randomColor(),
+				data: data
 			}
 		]));
 
@@ -65,6 +68,15 @@
 		]);
 	}
 
+	function exportDefinitions(){
+		editor.saveJson(Array.from(definitions.values()).reduce((json, definition) => {
+			json[definition.name] = Object.assign({}, definition.data, {
+				"editor-color": saveMetadata ? definition.color : undefined
+			});
+			return json;
+		}, {}), "definitions.json");
+	}
+
 	function exportSkills(){
 		editor.saveJson(skills.reduce((json, skill) => {
 			json[skill.name] = {
@@ -87,56 +99,61 @@
 	}
 </script>
 
-<div class="container">
+<div class="action-container">
 	<HStack>
 		<Text>Definitions:</Text>
 		<Spacer />
 	</HStack>
-	<VStack gap="2px">
-		<FileInput bind:file={definitionsFile} />
-	</VStack>
+	<FileInput bind:file={definitionsFile} />
 	<HStack>
 		<Text>Skills:</Text>
 		<Spacer />
 	</HStack>
-	<VStack gap="2px">
-		<FileInput bind:file={skillsFile} />
-	</VStack>
+	<FileInput bind:file={skillsFile} />
 	<HStack>
 		<Text>Connections:</Text>
 		<Spacer />
 	</HStack>
-	<VStack gap="2px">
-		<FileInput bind:file={connectionsFile}/>
-	</VStack>
+	<FileInput bind:file={connectionsFile}/>
 	<Spacer />
-	<VStack gap="2px">
-		<Button on:click={importAll}>Import</Button>
-	</VStack>
+	<Button on:click={importAll}>Import</Button>
 </div>
 <Divider />
-<div class="container">
+<div class="action-container">
+	<HStack>
+		<Text>Definitions:</Text>
+		<Spacer />
+	</HStack>
+	<Button on:click={exportDefinitions}>Export</Button>
 	<HStack>
 		<Text>Skills:</Text>
 		<Spacer />
 	</HStack>
-	<VStack gap="2px">
-		<Button on:click={exportSkills}>Export</Button>
-	</VStack>
+	<Button on:click={exportSkills}>Export</Button>
 	<HStack>
 		<Text>Connections:</Text>
 		<Spacer />
 	</HStack>
-	<VStack gap="2px">
-		<Button on:click={exportConnections}>Export</Button>
-	</VStack>
+	<Button on:click={exportConnections}>Export</Button>
+</div>
+<Divider />
+<div class="option-container">
+	<Text>Save metadata:</Text>
+	<Spacer />
+	<Checkbox bind:checked={saveMetadata} />
 </div>
 
 
 <style lang="scss">
-	.container{
+	.action-container{
 		display: grid;
 		grid-template-columns: auto 1fr;
 		gap: 2px 8px;
+	}
+	.option-container{
+		display: grid;
+		grid-template-columns: auto 1fr 20px;
+		grid-template-rows: 20px;
+		gap: 2px;
 	}
 </style>
