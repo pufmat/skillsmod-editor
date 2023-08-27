@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type * as editor from "./editor";
 	import Definitions from "./Definitions.svelte";
 	import Grid from "./GridSettings.svelte";
 	import Project from "./Project.svelte";
@@ -7,30 +6,20 @@
 	import HStack from "./lib/HStack.svelte";
 	import Spacer from "./lib/Spacer.svelte";
 	import VStack from "./lib/VStack.svelte";
-
-	export let gridType: editor.GridType;
-	export let gridSize;
-	export let gridCount;
-
-	export let definitions: Map<string, editor.Definition>;
-	export let skills: editor.Skill[];
-	export let connections: editor.Connection[];
-
-	export let selected: editor.Definition | null;
 </script>
 
 <div class="sidebar">
 	<fieldset>
 		<legend>Project</legend>
-		<Project bind:definitions bind:skills bind:connections />
+		<Project />
 	</fieldset>
 	<fieldset>
 		<legend>Grid</legend>
-		<Grid bind:gridSize bind:gridType bind:gridCount />
+		<Grid />
 	</fieldset>
 	<fieldset>
 		<legend>Definitions</legend>
-		<Definitions bind:definitions bind:skills bind:selected />
+		<Definitions />
 	</fieldset>
 	<fieldset>
 		<legend>Instructions</legend>

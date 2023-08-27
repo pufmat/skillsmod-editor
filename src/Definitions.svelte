@@ -10,11 +10,12 @@
 	import Text from "./lib/Text.svelte";
 	import VStack from "./lib/VStack.svelte";
 	import Padding from "./lib/Padding.svelte";
+    import type { Writable } from "svelte/store";
+    import { getContext } from "svelte";
 
-	export let definitions: Map<string, editor.Definition>;
-	export let skills: editor.Skill[];
 
-	export let selected: editor.Definition | null;
+	let project = getContext<Writable<editor.Project>>("project");
+	let state = getContext<Writable<editor.State>>("state");
 
 	let modalDefinition: editor.Definition;
 	let modalVisible: boolean;
@@ -25,13 +26,13 @@
 			return;
 		}
 
-		definitions.delete(modalDefinition.name);
-		const newDefinition = definitions.get(newName);
+		$project.definitions.delete(modalDefinition.name);
+		const newDefinition = $project.definitions.get(newName);
 		if(newDefinition === undefined){
 			modalDefinition.name = newName;
-			definitions.set(newName, modalDefinition);
+			$project.definitions.set(newName, modalDefinition);
 		}else{
-			for(const skill of skills){
+			for(const skill of $project.skills){
 				if(skill.definition === modalDefinition){
 					skill.definition = newDefinition;
 				}
@@ -40,7 +41,7 @@
 
 		modalVisible = false;
 
-		definitions = definitions;
+		$project.definitions = $project.definitions;
 	}
 
 	function openModal(definition){
@@ -50,17 +51,17 @@
 	}
 
 	$: {
-		if(Array.from(definitions.values()).find(definition => definition === selected) === undefined){
-			selected = definitions.values().next().value ?? null;
+		if(Array.from($project.definitions.values()).find(definition => definition === $state.selected) === undefined){
+			$state.selected = $project.definitions.values().next().value ?? null;
 		}
 	}
 </script>
 
 <div class="container">
-	{#each Array.from(definitions.values()) as definition}
-		<Radio on:click={() => selected = definition} checked={definition === selected} />
+	{#each Array.from($project.definitions.values()) as definition}
+		<Radio on:click={() => $state.selected = definition} checked={definition === $state.selected} />
 		<TextInput value={definition.name} disabled={true} />
-		<ColorInput bind:value={definition.color} on:input={() => definitions = definitions}/> <!-- TODO FIX -->
+		<ColorInput bind:value={definition.color} on:input={() => $project.definitions = $project.definitions}/> <!-- TODO FIX -->
 		<Button on:click={() => openModal(definition)}>Edit</Button>
 	{/each}
 </div>

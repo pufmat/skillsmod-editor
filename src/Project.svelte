@@ -7,10 +7,10 @@
 	import Text from "./lib/Text.svelte";
 	import Divider from "./lib/Divider.svelte";
     import Checkbox from "./lib/Checkbox.svelte";
+    import type { Writable } from "svelte/store";
+    import { getContext } from "svelte";
 
-	export let definitions: Map<string, editor.Definition>;
-	export let skills: editor.Skill[];
-	export let connections: editor.Connection[];
+	let project = getContext<Writable<editor.Project>>("project");
 
 	let definitionsFile: File | undefined;
 	let skillsFile: File | undefined;
@@ -37,7 +37,7 @@
 			return;
 		}
 
-		definitions = new Map(Object.entries(definitionsJson).map(([name, data]) => [
+		$project.definitions = new Map(Object.entries(definitionsJson).map(([name, data]) => [
 			name,
 			{
 				name: name,
@@ -48,10 +48,10 @@
 
 		const skillsMap = new Map<string, editor.Skill>;
 
-		skills = Object.entries(skillsJson).map(entry => {
+		$project.skills = Object.entries(skillsJson).map(entry => {
 			const skill: editor.Skill = {
 				name: entry[0],
-				definition: definitions.get(entry[1].definition),
+				definition: $project.definitions.get(entry[1].definition),
 				pos: {
 					x: entry[1].x,
 					y: entry[1].y
@@ -62,14 +62,14 @@
 			return skill;
 		});
 
-		connections = Object.values(connectionJson).map(connection => [
+		$project.connections = Object.values(connectionJson).map(connection => [
 			skillsMap.get(connection[0]),
 			skillsMap.get(connection[1])
 		]);
 	}
 
 	function exportDefinitions(){
-		editor.saveJson(Array.from(definitions.values()).reduce((json, definition) => {
+		editor.saveJson(Array.from($project.definitions.values()).reduce((json, definition) => {
 			json[definition.name] = Object.assign({}, definition.data, {
 				"editor-color": saveMetadata ? definition.color : undefined
 			});
@@ -78,7 +78,7 @@
 	}
 
 	function exportSkills(){
-		editor.saveJson(skills.reduce((json, skill) => {
+		editor.saveJson($project.skills.reduce((json, skill) => {
 			json[skill.name] = {
 				definition: skill.definition.name,
 				x: skill.pos.x,
@@ -90,7 +90,7 @@
 	}
 
 	function exportConnections(){
-		editor.saveJson(connections.map(connection => {
+		editor.saveJson($project.connections.map(connection => {
 			return [0, 1].map(skillIndex => {
 				const skill = connection[skillIndex];
 				return skill.name;

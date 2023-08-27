@@ -2,21 +2,29 @@
 	import * as editor from "./editor";
 	import Canvas from "./Canvas.svelte";
     import Sidebar from "./Sidebar.svelte";
+    import { writable } from "svelte/store";
+    import { setContext } from "svelte";
 
-	export let gridType: editor.GridType = editor.GridType.SQUARE;
-	export let gridSize = 32;
-	export let gridCount = 8;
+	setContext("grid", writable<editor.Grid>({
+		type: editor.GridType.SQUARE,
+		spacing: 32,
+		size: 8
+    }));
 
-	export let definitions = new Map<string, editor.Definition>();
-	export let skills: editor.Skill[] = [];
-	export let connections: editor.Connection[] = [];
+	setContext("project", writable<editor.Project>({
+		definitions: new Map(),
+		skills: [],
+		connections: []
+	}));
 
-	export let selected: editor.Definition | null = null;
+	setContext("state", writable<editor.State>({
+		selected: null
+	}));
 </script>
 
 <div class="container">
-	<Sidebar bind:gridSize bind:gridType bind:gridCount bind:definitions bind:skills bind:connections bind:selected />
-	<Canvas bind:gridSize bind:gridType bind:gridCount bind:definitions bind:skills bind:connections bind:selected />
+	<Sidebar />
+	<Canvas />
 </div>
 
 <style>

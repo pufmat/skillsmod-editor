@@ -31,6 +31,22 @@ export enum Button {
 	RIGHT = 2
 }
 
+export interface Grid {
+	type: GridType;
+	spacing: number;
+	size: number;
+}
+
+export interface Project {
+	definitions: Map<string, Definition>;
+	skills: Skill[];
+	connections: Connection[];
+}
+
+export interface State {
+	selected: Definition | null;
+}
+
 export function randomColor(): string {
 	const i = Math.floor(Math.random() * 1530);
 	const j = i % 255;
