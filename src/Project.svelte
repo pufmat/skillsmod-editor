@@ -25,7 +25,7 @@
 
 		const definitionsJson = await editor.readJson(definitionsFile);
 		const skillsJson = await editor.readJson(skillsFile);
-		const connectionJson = await editor.readJson(connectionsFile);
+		const connectionsJson = await editor.readJson(connectionsFile);
 
 		if(definitionsJson === undefined || typeof definitionsJson !== "object"){
 			return;
@@ -33,36 +33,36 @@
 		if(skillsJson === undefined || typeof skillsJson !== "object"){
 			return;
 		}
-		if(connectionJson === undefined || typeof connectionJson !== "object"){
+		if(connectionsJson === undefined || typeof connectionsJson !== "object"){
 			return;
 		}
 
 		$project.definitions = new Map(Object.entries(definitionsJson).map(([name, data]) => [
 			name,
 			{
-				name: name,
-				color: data["editor-color"] ?? editor.randomColor(),
-				data: data
+				name,
+				data,
+				color: data["metadata"]?.["color"] ?? editor.randomColor(),
 			}
 		]));
 
 		const skillsMap = new Map<string, editor.Skill>;
 
-		$project.skills = Object.entries(skillsJson).map(entry => {
+		$project.skills = Object.entries(skillsJson).map(([name, data]) => {
 			const skill: editor.Skill = {
-				name: entry[0],
-				definition: $project.definitions.get(entry[1].definition),
+				name,
+				definition: $project.definitions.get(data.definition),
 				pos: {
-					x: entry[1].x,
-					y: entry[1].y
+					x: data.x,
+					y: data.y
 				},
-				root: entry[1].root ?? false,
+				root: data.root ?? false,
 			};
 			skillsMap.set(skill.name, skill);
 			return skill;
 		});
 
-		$project.connections = Object.values(connectionJson).map(connection => [
+		$project.connections = Object.values(connectionsJson).map(connection => [
 			skillsMap.get(connection[0]),
 			skillsMap.get(connection[1])
 		]);
@@ -71,7 +71,9 @@
 	function exportDefinitions(){
 		editor.saveJson(Array.from($project.definitions.values()).reduce((json, definition) => {
 			json[definition.name] = Object.assign({}, definition.data, {
-				"editor-color": saveMetadata ? definition.color : undefined
+				"metadata": saveMetadata ? {
+					color: definition.color
+				} : undefined
 			});
 			return json;
 		}, {}), "definitions.json");

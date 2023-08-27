@@ -1,3 +1,5 @@
+import { get, writable, type Writable } from "svelte/store";
+
 export interface Position {
 	x: number,
 	y: number
@@ -96,3 +98,20 @@ export function saveJson(json, name: string){
 	}));
 	a.click();
 }
+
+export function persistent<T>(save: (T) => void, load: () => T): Writable<T> {
+	const store = writable(load());
+
+	return {
+		subscribe: store.subscribe,
+		set(newValue){
+			save(newValue);
+			store.set(newValue);
+		},
+		update(updater) {
+			const newValue = updater(get(store));
+			save(newValue);
+			store.set(newValue);
+		}
+	};
+ }
