@@ -380,11 +380,13 @@
 	}
 
 	function drawGrid(){
+		ctx.fillStyle = "#aaaaaa";
+		ctx.beginPath();
 		switch($grid.type){
 		case editor.GridType.SQUARE:
 			for(let i = -$grid.size; i <= $grid.size; i++) {
 				for(let j = -$grid.size; j <= $grid.size; j++) {
-					drawDot(i, j);
+					addDot(i, j);
 				}
 			}
 			break;
@@ -395,66 +397,101 @@
 					const k = (j + i / 2) * Math.sqrt(3) / 1.5
 
 					if($grid.type === editor.GridType.HEX_FLAT){
-						drawDot(k, i);
+						addDot(k, i);
 					}else{
-						drawDot(i, k);
+						addDot(i, k);
 					}
 				}
 			}
 			break;
 		}
+		ctx.fill();
 	}
 
 	function drawSkills(){
+		ctx.fillStyle = "#000000";
+		ctx.beginPath();
 		for(const skill of $project.skills){
-			ctx.save();
+			if(skill.definition !== null){
+				continue;
+			}
 			if(skill.root){
-				ctx.beginPath();
-				ctx.arc(skill.pos.x, skill.pos.y, 13, 0, Math.PI * 2);
-				ctx.fill();
-				ctx.clip();
-			}
-			ctx.translate(skill.pos.x - 13, skill.pos.y - 13);
-			if(skill.definition){
-				jdenticon.drawIcon(ctx, skill.definition.icon, 26);
+				addCircle(skill.pos.x, skill.pos.y, 13);
 			}else{
-				ctx.fillStyle = "#000000";
-				ctx.fillRect(0, 0, 26, 26);
+				ctx.rect(skill.pos.x - 13, skill.pos.y - 13, 26, 26);
 			}
-			ctx.restore();
 		}
+		ctx.fill();
+
+		ctx.save();
+		ctx.beginPath();
+		for(const skill of $project.skills){
+			if(skill.definition === null){
+				continue;
+			}
+			if(skill.root){
+				addCircle(skill.pos.x, skill.pos.y, 13);
+			}else{
+				ctx.rect(skill.pos.x - 13, skill.pos.y - 13, 26, 26);
+			}
+		}
+		ctx.clip();
+		const transform = ctx.getTransform();
+		for(const skill of $project.skills){
+			if(skill.definition === null){
+				continue;
+			}
+			ctx.setTransform(
+				transform.a,
+				transform.b,
+				transform.c,
+				transform.d,
+				transform.e + (skill.pos.x - 13) * transform.a,
+				transform.f + (skill.pos.y - 13) * transform.d,
+			);
+			jdenticon.drawIcon(ctx, skill.definition.icon, 26);
+		}
+		ctx.restore();
 	}
 
 	function drawConnections(){
 		ctx.strokeStyle = "#000000";
 		ctx.lineWidth = 4;
+		ctx.beginPath();
 
 		for(const connection of $project.connections){
-			if(connection[0] === undefined || connection[1] === undefined){
+			const a = connection[0];
+			const b = connection[1];
+
+			if(a === undefined || b === undefined){
 				continue;
 			}
 
-			ctx.beginPath();
-			ctx.moveTo(connection[0].pos.x, connection[0].pos.y);
-			ctx.lineTo(connection[1].pos.x, connection[1].pos.y);
-			ctx.stroke();
+			ctx.moveTo(a.pos.x, a.pos.y);
+			ctx.lineTo(b.pos.x, b.pos.y);
 		}
 
 		if(previousSkill !== null){
 			const mouse = transformPosition({x: mouseX, y: mouseY});
 
-			ctx.beginPath();
 			ctx.moveTo(previousSkill.pos.x, previousSkill.pos.y);
 			ctx.lineTo(mouse.x, mouse.y);
-			ctx.stroke();
 		}
+
+		ctx.stroke();
 	}
 
-	function drawDot(x: number, y: number){
-		ctx.fillStyle = "#aaaaaa";
-		ctx.beginPath();
-		ctx.arc($grid.spacing * x, $grid.spacing * y, x === 0 && y === 0 ? 8 : 5, 0, Math.PI * 2);
-		ctx.fill();
+	function addDot(x: number, y: number){
+		addCircle(
+			x * $grid.spacing,
+			y * $grid.spacing,
+			x === 0 && y === 0 ? 8 : 5
+		);
+	}
+
+	function addCircle(x: number, y: number, r: number){
+		ctx.moveTo(x + r, y);
+		ctx.arc(x, y, r, 0, Math.PI * 2);
 	}
 
 	$: {
