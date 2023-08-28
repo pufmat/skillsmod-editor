@@ -29,19 +29,43 @@
 				<Spacer />
 			</HStack>
 			<HStack>
-				<Text>Middle Click - create or delete connection.</Text>
+				<Text>Middle Click - add or delete connection.</Text>
 				<Spacer />
 			</HStack>
 			<HStack>
-				<Text>Double Middle Click - toggle root skill.</Text>
-				<Spacer />
-			</HStack>
-			<HStack>
-				<Text>Right Click - create or edit or delete skill.</Text>
+				<Text>Right Click - add or edit or delete skill.</Text>
 				<Spacer />
 			</HStack>
 			<HStack>
 				<Text>Scroll - zoom view.</Text>
+				<Spacer />
+			</HStack>
+			<HStack>
+				<Text>Key A - add skill.</Text>
+				<Spacer />
+			</HStack>
+			<HStack>
+				<Text>Key E - edit skill.</Text>
+				<Spacer />
+			</HStack>
+			<HStack>
+				<Text>Key D - delete skill.</Text>
+				<Spacer />
+			</HStack>
+			<HStack>
+				<Text>Key T - add or edit or delete skill.</Text>
+				<Spacer />
+			</HStack>
+			<HStack>
+				<Text>Key C - add or delete connection.</Text>
+				<Spacer />
+			</HStack>
+			<HStack>
+				<Text>Key X - delete all connections.</Text>
+				<Spacer />
+			</HStack>
+			<HStack>
+				<Text>Key R - toggle root skill.</Text>
 				<Spacer />
 			</HStack>
 		</VStack>

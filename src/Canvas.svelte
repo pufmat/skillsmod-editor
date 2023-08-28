@@ -91,59 +91,16 @@
 		mouseX = event.offsetX;
 		mouseY = event.offsetY;
 
-		const mouse = transformPosition({x: mouseX, y: mouseY});
-
-		if(event.button === editor.Button.LEFT){
+		switch(event.button){
+		case editor.Button.LEFT:
 			dragging = false;
-		}else if(event.button === editor.Button.MIDDLE){
-			const currentSkill = $project.skills.find((skill) => isMouseInsideSkill(mouse, skill)) ?? null;
-			if(currentSkill === null || previousSkill === null){
-				previousSkill = currentSkill;
-			}else{
-				if(currentSkill === previousSkill){
-					toggleRoot(currentSkill);
-				}else{
-					toggleConnection(currentSkill, previousSkill);
-				}
-				previousSkill = null;
-			}
-		}else if(event.button === editor.Button.RIGHT){
-			const oldLength = $project.skills.length;
-			$project.skills = $project.skills.filter(skill => {
-				if(isMouseInsideSkill(mouse, skill)){
-					if(skill.definition === $state.selected){
-						removeConnections(skill);
-						return false;
-					}else{
-						skill.definition = $state.selected;
-						return true;
-					}
-				}else{
-					return true;
-				}
-			});
-			if($project.skills.length === oldLength){
-				const pos = snapToGrid(mouse);
-				if($project.skills.find(skill => skill.pos.x === pos.x && skill.pos.y === pos.y) === undefined){
-					let newName: string;
-					do{
-						newName = editor.randomName();
-					}while($project.skills.find(skill => skill.name === newName) !== undefined);
-
-					const newSkill: editor.Skill = {
-						name: newName,
-						definition: $state.selected,
-						pos: pos,
-						root: false
-					};
-					$project.skills.push(newSkill);
-
-					if(previousSkill !== null){
-						toggleConnection(newSkill, previousSkill);
-					}
-				}
-			}
-			previousSkill = null;
+			break;
+		case editor.Button.MIDDLE:
+			toggleConnectionAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			break;
+		case editor.Button.RIGHT:
+			toggleSkillAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			break;
 		}
 
 		update();
@@ -166,6 +123,120 @@
 		viewDragY += dy;
 
 		update();
+	}
+
+	function keyUp(event: KeyboardEvent){
+		switch(event.key){
+		case "a":
+			createSkillAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			break;
+		case "e":
+			editSkillAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			break;
+		case "d":
+			deleteSkillAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			break;
+		case "t":
+			toggleSkillAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			break;
+		case "r":
+			toggleRootAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			break;
+		case "c":
+			toggleConnectionAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			break;
+		case "x":
+			removeConnectionsAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			break;
+		}
+
+		update();
+	}
+
+	function createSkillAt(pos: editor.Position): boolean {
+		if(getSkillAt(pos) === null){
+			let newName: string;
+			do{
+				newName = editor.randomName();
+			}while($project.skills.find(skill => skill.name === newName) !== undefined);
+
+			const newSkill: editor.Skill = {
+				name: newName,
+				definition: $state.selected,
+				pos: pos,
+				root: false
+			};
+			$project.skills.push(newSkill);
+			return true;
+		}
+		return false;
+	}
+
+	function deleteSkillAt(pos: editor.Position): boolean {
+		const oldLength = $project.skills.length;
+		$project.skills = $project.skills.filter(skill => {
+			if(skill.pos.x === pos.x && skill.pos.y === pos.y){
+				removeConnections(skill);
+				return false;
+			}else{
+				return true;
+			}
+		});
+		return $project.skills.length !== oldLength;
+	}
+
+	function editSkillAt(pos: editor.Position): boolean {
+		const skill = getSkillAt(pos);
+		if(skill !== null){
+			if(skill.definition !== $state.selected){
+				skill.definition = $state.selected;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function toggleSkillAt(pos: editor.Position){
+		if(editSkillAt(pos)){
+			return;
+		}
+		if(deleteSkillAt(pos)){
+			return;
+		}
+		createSkillAt(pos);
+	}
+
+	function toggleRootAt(pos: editor.Position){
+		const skill = getSkillAt(pos);
+		if(skill !== null){
+			skill.root = !skill.root;
+		}
+		return false;
+	}
+
+	function toggleConnectionAt(pos: editor.Position){
+		const skill = getSkillAt(pos);
+		if(skill !== null){
+			if(skill === null || previousSkill === null){
+				previousSkill = skill;
+			}else{
+				if(skill !== previousSkill){
+					toggleConnection(skill, previousSkill);
+				}
+				previousSkill = null;
+			}
+		}
+	}
+
+	function removeConnectionsAt(pos: editor.Position){
+		const skill = getSkillAt(pos);
+		if(skill !== null){
+			removeConnections(skill);
+		}
+	}
+
+	function getSkillAt(pos: editor.Position) {
+		return $project.skills.find(skill => skill.pos.x === pos.x && skill.pos.y === pos.y) ?? null;
 	}
 
 	function removeConnections(skill: editor.Skill){
@@ -203,10 +274,6 @@
 		$project.connections = $project.connections;
 	}
 
-	function toggleRoot(skill: editor.Skill){
-		skill.root = !skill.root;
-	}
-
 	function transformPosition(pos: editor.Position): editor.Position{
 		const width = canvasElement.width;
 		const height = canvasElement.height;
@@ -240,8 +307,6 @@
 		case editor.GridType.HEX_FLAT:
 		case editor.GridType.HEX_POINTY:
 			{
-				const tmpSize = $grid.spacing * Math.sqrt(3) / 1.5;
-
 				let i;
 				let j;
 
@@ -253,14 +318,16 @@
 					j = pos.x;
 				}
 
-				i /= tmpSize;
+				const s = $grid.spacing * Math.sqrt(3) / 1.5;
+
+				i /= s;
 				j = j * 1.5 / $grid.spacing - 1;
 
 				let k = Math.floor(i - j);
 				let l = Math.floor((k + 2 * i + 1) / 3);
 				let m = Math.floor((k - j - i) / 3);
 
-				i = l * tmpSize - m * tmpSize / 2;
+				i = l * s - m * s / 2;
 				j = -m * $grid.spacing;
 
 				if($grid.type === editor.GridType.HEX_FLAT){
@@ -395,7 +462,7 @@
 	}
 </script>
 
-<svelte:window on:resize={resize} />
+<svelte:window on:resize={resize} on:keyup={keyUp}/>
 
 <div class="container">
 	<canvas
