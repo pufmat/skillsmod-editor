@@ -2,6 +2,7 @@
 	import * as editor from "./editor";
 	import {getContext, onMount} from "svelte";
     import type { Writable } from "svelte/store";
+	import * as jdenticon from "jdenticon";
 
 	let grid = getContext<Writable<editor.Grid>>("grid");
 	let project = getContext<Writable<editor.Project>>("project");
@@ -157,8 +158,8 @@
 		if(getSkillAt(pos) === null){
 			let newName: string;
 			do{
-				newName = editor.randomName();
-			}while($project.skills.find(skill => skill.name === newName) !== undefined);
+				newName = editor.randomIdentifier();
+			}while($project.skills.some(skill => skill.name === newName));
 
 			const newSkill: editor.Skill = {
 				name: newName,
@@ -167,6 +168,7 @@
 				root: false
 			};
 			$project.skills.push(newSkill);
+			$project.skills = $project.skills;
 			return true;
 		}
 		return false;
@@ -210,21 +212,22 @@
 		const skill = getSkillAt(pos);
 		if(skill !== null){
 			skill.root = !skill.root;
+			$project.skills = $project.skills;
 		}
 		return false;
 	}
 
 	function toggleConnectionAt(pos: editor.Position){
 		const skill = getSkillAt(pos);
-		if(skill !== null){
-			if(skill === null || previousSkill === null){
-				previousSkill = skill;
-			}else{
-				if(skill !== previousSkill){
-					toggleConnection(skill, previousSkill);
-				}
-				previousSkill = null;
+		if(skill === null){
+			previousSkill = null;
+		}else if(previousSkill === null){
+			previousSkill = skill;
+		}else{
+			if(skill !== previousSkill){
+				toggleConnection(skill, previousSkill);
 			}
+			previousSkill = null;
 		}
 	}
 
@@ -404,18 +407,21 @@
 
 	function drawSkills(){
 		for(const skill of $project.skills){
-			if(skill.definition === null){
-				ctx.fillStyle = "#666666";
-			}else{
-				ctx.fillStyle = skill.definition.color;
-			}
+			ctx.save();
 			if(skill.root){
 				ctx.beginPath();
 				ctx.arc(skill.pos.x, skill.pos.y, 13, 0, Math.PI * 2);
 				ctx.fill();
-			}else{
-				ctx.fillRect(skill.pos.x - 13, skill.pos.y - 13, 26, 26);
+				ctx.clip();
 			}
+			ctx.translate(skill.pos.x - 13, skill.pos.y - 13);
+			if(skill.definition){
+				jdenticon.drawIcon(ctx, skill.definition.icon, 26);
+			}else{
+				ctx.fillStyle = "#000000";
+				ctx.fillRect(0, 0, 26, 26);
+			}
+			ctx.restore();
 		}
 	}
 

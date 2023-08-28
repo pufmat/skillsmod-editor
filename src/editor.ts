@@ -1,4 +1,18 @@
 import { get, writable, type Writable } from "svelte/store";
+import * as jdenticon from "jdenticon";
+
+jdenticon.configure({
+    lightness: {
+        color: [0.4, 0.7],
+        grayscale: [0.4, 0.7]
+    },
+    saturation: {
+        color: 1.0,
+        grayscale: 0.5
+    },
+	padding: 0.0,
+	backColor: "#000"
+});
 
 export interface Position {
 	x: number,
@@ -7,7 +21,7 @@ export interface Position {
 
 export interface Definition {
 	name: string,
-	color: string,
+	icon: string,
 	data: string
 }
 
@@ -49,28 +63,7 @@ export interface State {
 	selected: Definition | null;
 }
 
-export function randomColor(): string {
-	const i = Math.floor(Math.random() * 1530);
-	const j = i % 255;
-	switch (Math.floor(i / 255)) {
-	case 0:
-		return "#ff" + j.toString(16).padStart(2, "0") + "00";
-	case 1:
-		return "#" + (255 - j).toString(16).padStart(2, "0") + "ff00";
-	case 2:
-		return "#00ff" + j.toString(16).padStart(2, "0");
-	case 3:
-		return "#00" + (255 - j).toString(16).padStart(2, "0") + "ff";
-	case 4:
-		return "#" + j.toString(16).padStart(2, "0") + "00ff";
-	case 5:
-		return "#ff00" + (255 - j).toString(16).padStart(2, "0");
-	default:
-		throw new Error();
-	}
-}
-
-export function randomName(): string {
+export function randomIdentifier(): string {
 	return Array.from(Array(16), () => Math.floor(Math.random() * 36).toString(36)).join("");
 }
 

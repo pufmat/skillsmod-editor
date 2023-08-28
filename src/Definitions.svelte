@@ -1,7 +1,6 @@
 <script lang="ts">
-	import type * as editor from "./editor";
+	import * as editor from "./editor";
 	import Button from "./lib/Button.svelte";
-	import ColorInput from "./lib/ColorInput.svelte";
 	import TextInput from "./lib/TextInput.svelte";
 	import Radio from "./lib/Radio.svelte";
 	import Modal from "./lib/Modal.svelte";
@@ -12,6 +11,7 @@
 	import Padding from "./lib/Padding.svelte";
     import type { Writable } from "svelte/store";
     import { getContext } from "svelte";
+    import HashIcon from "./lib/HashIcon.svelte";
 
 
 	let project = getContext<Writable<editor.Project>>("project");
@@ -44,6 +44,11 @@
 		$project.definitions = $project.definitions;
 	}
 
+	function changeIcon(definition){
+		definition.icon = editor.randomIdentifier();
+		$project.definitions = $project.definitions;
+	}
+
 	function openModal(definition){
 		newName = definition.name;
 		modalDefinition = definition;
@@ -61,8 +66,10 @@
 	{#each Array.from($project.definitions.values()) as definition}
 		<Radio on:click={() => $state.selected = definition} checked={definition === $state.selected} />
 		<TextInput value={definition.name} disabled={true} />
-		<ColorInput bind:value={definition.color} on:input={() => $project.definitions = $project.definitions}/> <!-- TODO FIX -->
-		<Button on:click={() => openModal(definition)}>Edit</Button>
+		<Button on:click={() => changeIcon(definition)}>
+			<HashIcon bind:value={definition.icon}/>
+		</Button>
+		<Button on:click={() => openModal(definition)}><Text>Edit</Text></Button>
 	{/each}
 </div>
 
@@ -76,8 +83,8 @@
 				</Spacer>
 			</HStack>
 			<HStack gap="2px">
-				<Button on:click={() => modalVisible = false}>Cancel</Button>
-				<Button on:click={rename}>Save</Button>
+				<Button on:click={() => modalVisible = false}><Text>Cancel</Text></Button>
+				<Button on:click={rename}><Text>Save</Text></Button>
 			</HStack>
 		</VStack>
 	</Padding>
@@ -86,7 +93,7 @@
 <style lang="scss">
 	.container{
 		display: grid;
-		grid-template-columns: 32px 1fr 32px auto;
+		grid-template-columns: 27px 1fr 27px auto;
 		gap: 2px;
 	}
 </style>

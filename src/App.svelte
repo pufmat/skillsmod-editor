@@ -9,13 +9,13 @@
 		const definitionsJson = Array.from(project.definitions.values()).reduce((json, definition) => {
 			json[definition.name] = {
 				data: definition.data,
-				color: definition.color
+				icon: definition.icon
 			};
 			return json;
 		}, {});
 		const skillsJson = project.skills.reduce((json, skill) => {
 			json[skill.name] = {
-				definition: skill.definition.name,
+				definition: skill.definition?.name ?? null,
 				x: skill.pos.x,
 				y: skill.pos.y,
 				root: skill.root
@@ -40,8 +40,8 @@
 			const skillsJson: object = JSON.parse(localStorage.getItem("skills"));
 			const connectionsJson: object = JSON.parse(localStorage.getItem("connections"));
 
-			const definitions = new Map(Object.entries(definitionsJson).map(([name, {color, data}]) => [
-				name, {name, color, data}
+			const definitions = new Map(Object.entries(definitionsJson).map(([name, {icon, data}]) => [
+				name, {name, icon, data}
 			]));
 
 			const skillsMap = new Map<string, editor.Skill>;
@@ -49,7 +49,7 @@
 			const skills = Object.entries(skillsJson).map(([name, data]) => {
 				const skill: editor.Skill = {
 					name,
-					definition: definitions.get(data.definition),
+					definition: data.definition ? definitions.get(data.definition) : null,
 					pos: {
 						x: data.x,
 						y: data.y
@@ -104,17 +104,15 @@
 		display: flex;
 	}
 	:global(html, body) {
-		font-size: 0;
 		width: 100%;
 		height: 100%;
 		box-sizing: border-box;
 		cursor: default;
-	}
-	:global(html, body) {
 		margin: 0;
 		padding: 0;
 		border: 0;
 		border-spacing: 0;
+		font-size: 0;
 	}
 	:global(*){
 		box-sizing: border-box;

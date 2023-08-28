@@ -42,7 +42,7 @@
 			{
 				name,
 				data,
-				color: data["metadata"]?.["color"] ?? editor.randomColor(),
+				icon: data.metadata?.icon ?? editor.randomIdentifier(),
 			}
 		]));
 
@@ -71,8 +71,8 @@
 	function exportDefinitions(){
 		editor.saveJson(Array.from($project.definitions.values()).reduce((json, definition) => {
 			json[definition.name] = Object.assign({}, definition.data, {
-				"metadata": saveMetadata ? {
-					color: definition.color
+				metadata: saveMetadata ? {
+					icon: definition.icon
 				} : undefined
 			});
 			return json;
@@ -118,7 +118,7 @@
 	</HStack>
 	<FileInput bind:file={connectionsFile}/>
 	<Spacer />
-	<Button on:click={importAll}>Import</Button>
+	<Button on:click={importAll}><Text>Import</Text></Button>
 </div>
 <Divider />
 <div class="action-container">
@@ -126,17 +126,17 @@
 		<Text>Definitions:</Text>
 		<Spacer />
 	</HStack>
-	<Button on:click={exportDefinitions}>Export</Button>
+	<Button on:click={exportDefinitions}><Text>Export</Text></Button>
 	<HStack>
 		<Text>Skills:</Text>
 		<Spacer />
 	</HStack>
-	<Button on:click={exportSkills}>Export</Button>
+	<Button on:click={exportSkills}><Text>Export</Text></Button>
 	<HStack>
 		<Text>Connections:</Text>
 		<Spacer />
 	</HStack>
-	<Button on:click={exportConnections}>Export</Button>
+	<Button on:click={exportConnections}><Text>Export</Text></Button>
 </div>
 <Divider />
 <div class="option-container">

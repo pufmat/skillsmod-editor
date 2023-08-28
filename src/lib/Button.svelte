@@ -9,9 +9,9 @@
 		background-color: #eeeeee;
 		border: 1px solid #888888;
 		border-radius: 4px;
-		padding: 3px 6px;
-		font-size: 16px;
+		padding: 3px;
 		outline: 0;
+		font-size: 0;
 		cursor: pointer;
 	}
 </style>
