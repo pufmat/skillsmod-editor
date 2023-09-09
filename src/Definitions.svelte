@@ -56,15 +56,15 @@
 	}
 
 	$: {
-		if(Array.from($project.definitions.values()).find(definition => definition === $state.selected) === undefined){
-			$state.selected = $project.definitions.values().next().value ?? null;
+		if(Array.from($project.definitions.values()).find(definition => definition === $state.selectedDefinition) === undefined){
+			$state.selectedDefinition = $project.definitions.values().next().value ?? null;
 		}
 	}
 </script>
 
 <div class="container">
 	{#each Array.from($project.definitions.values()) as definition}
-		<Radio on:click={() => $state.selected = definition} checked={definition === $state.selected} />
+		<Radio on:click={() => $state.selectedDefinition = definition} checked={definition === $state.selectedDefinition} />
 		<TextInput value={definition.name} disabled={true} />
 		<Button on:click={() => changeIcon(definition)}>
 			<HashIcon bind:value={definition.icon}/>

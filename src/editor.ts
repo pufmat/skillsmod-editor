@@ -32,7 +32,21 @@ export interface Skill {
 	root: boolean
 }
 
-export type Connection = [Skill, Skill];
+export interface Connection {
+	type: ConnectionType,
+	direction: ConnectionDirection,
+	skills: [Skill, Skill]
+}
+
+export enum ConnectionType {
+	NORMAL = "normal",
+	EXCLUSIVE = "exclusive"
+}
+
+export enum ConnectionDirection {
+	UNIDIRECTIONAL = "unidirectional",
+	BIDIRECTIONAL = "bidirectional"
+}
 
 export enum GridType {
 	NONE,
@@ -60,7 +74,110 @@ export interface Project {
 }
 
 export interface State {
-	selected: Definition | null;
+	selectedDefinition: Definition | null;
+	selectedConnectionType: ConnectionType;
+	selectedConnectionDirection: ConnectionDirection;
+}
+
+export function saveProject(project: Project) {
+	const definitionsJson = Array.from(project.definitions.values()).reduce((json, definition) => {
+		json[definition.name] = {
+			data: definition.data,
+			icon: definition.icon
+		};
+		return json;
+	}, {});
+	const skillsJson = project.skills.reduce((json, skill) => {
+		json[skill.name] = {
+			definition: skill.definition?.name ?? null,
+			x: skill.pos.x,
+			y: skill.pos.y,
+			root: skill.root
+		};
+		return json;
+	}, {});
+	const connectionsJson = project.connections.map(connection => {
+		return {
+			type: connection.type.toString(),
+			direction: connection.direction.toString(),
+			skills: connection.skills.map(skill => skill.name)
+		}
+	});
+
+	localStorage.setItem("definitions", JSON.stringify(definitionsJson));
+	localStorage.setItem("skills", JSON.stringify(skillsJson));
+	localStorage.setItem("connections", JSON.stringify(connectionsJson));
+}
+
+export function loadProject(): Project {
+	try {
+		const definitionsJson: object = JSON.parse(localStorage.getItem("definitions"));
+		const skillsJson: object = JSON.parse(localStorage.getItem("skills"));
+		const connectionsJson: object = JSON.parse(localStorage.getItem("connections"));
+
+		const definitions = new Map(Object.entries(definitionsJson).map(([name, {icon, data}]) => [
+			name, {name, icon, data}
+		]));
+
+		const skillsMap = new Map<string, Skill>;
+
+		const skills = Object.entries(skillsJson).map(([name, data]) => {
+			const skill: Skill = {
+				name,
+				definition: data.definition ? definitions.get(data.definition) : null,
+				pos: {
+					x: data.x,
+					y: data.y
+				},
+				root: data.root,
+			};
+			skillsMap.set(skill.name, skill);
+			return skill;
+		});
+
+		const connections = Object.values(connectionsJson).map(connection => {
+			if(Array.isArray(connection)){
+				return {
+					type: ConnectionType.NORMAL,
+					direction: ConnectionDirection.BIDIRECTIONAL,
+					skills: connection.map(id => skillsMap.get(id))
+				};
+			}else{
+				return {
+					type: connection.type as ConnectionType,
+					direction: connection.direction as ConnectionDirection,
+					skills: connection.skills.map(id => skillsMap.get(id))
+				};
+			}
+		}).flatMap(connection => {
+			if(connection.skills.length !== 2){
+				return [];
+			}
+			if(connection.skills[0] === undefined){
+				return [];
+			}
+			if(connection.skills[1] === undefined){
+				return [];
+			}
+			if(connection.skills[0] === connection.skills[1]){
+				return [];
+			}
+			return [connection];
+		});
+
+		return {
+			definitions,
+			skills,
+			connections
+		};
+	} catch (e){
+		console.log(e);
+		return {
+			definitions: new Map(),
+			skills: [],
+			connections: []
+		};
+	}
 }
 
 export function randomIdentifier(): string {

@@ -1,11 +1,12 @@
 <script lang="ts">
 	import Definitions from "./Definitions.svelte";
-	import Grid from "./GridSettings.svelte";
+	import Grid from "./Grid.svelte";
 	import Project from "./Project.svelte";
 	import Text from "./lib/Text.svelte";
 	import HStack from "./lib/HStack.svelte";
 	import Spacer from "./lib/Spacer.svelte";
 	import VStack from "./lib/VStack.svelte";
+    import Connections from "./Connections.svelte";
 </script>
 
 <div class="sidebar">
@@ -16,6 +17,10 @@
 	<fieldset>
 		<legend>Grid</legend>
 		<Grid />
+	</fieldset>
+	<fieldset>
+		<legend>Connections</legend>
+		<Connections />
 	</fieldset>
 	<fieldset>
 		<legend>Definitions</legend>

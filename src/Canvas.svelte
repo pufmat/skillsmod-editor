@@ -163,7 +163,7 @@
 
 			const newSkill: editor.Skill = {
 				name: newName,
-				definition: $state.selected,
+				definition: $state.selectedDefinition,
 				pos: pos,
 				root: false
 			};
@@ -179,6 +179,9 @@
 		$project.skills = $project.skills.filter(skill => {
 			if(skill.pos.x === pos.x && skill.pos.y === pos.y){
 				removeConnections(skill);
+				if(skill === previousSkill){
+					previousSkill = null;
+				}
 				return false;
 			}else{
 				return true;
@@ -190,8 +193,8 @@
 	function editSkillAt(pos: editor.Position): boolean {
 		const skill = getSkillAt(pos);
 		if(skill !== null){
-			if(skill.definition !== $state.selected){
-				skill.definition = $state.selected;
+			if(skill.definition !== $state.selectedDefinition){
+				skill.definition = $state.selectedDefinition;
 				return true;
 			}
 		}
@@ -225,7 +228,7 @@
 			previousSkill = skill;
 		}else{
 			if(skill !== previousSkill){
-				toggleConnection(skill, previousSkill);
+				toggleConnection(previousSkill, skill);
 			}
 			previousSkill = null;
 		}
@@ -242,38 +245,45 @@
 		return $project.skills.find(skill => skill.pos.x === pos.x && skill.pos.y === pos.y) ?? null;
 	}
 
-	function removeConnections(skill: editor.Skill){
+	function removeConnections(targetSkill: editor.Skill){
 		$project.connections = $project.connections.filter(connection => {
-			for(const skillIndex of [0, 1]){
-				if(connection[skillIndex] === skill){
-					return false;
-				}
-			}
-			return true;
+			return !connection.skills.some(skill => skill === targetSkill);
 		});
 	}
 
-	function toggleConnection(skill0: editor.Skill, skill1: editor.Skill){
-		if(skill0 === skill1){
+	function toggleConnection(skillA: editor.Skill, skillB: editor.Skill){
+		if(skillA === skillB){
 			return;
 		}
-		for(const [connectionIndex, connection] of $project.connections.entries()){
-			let matches = 0;
-			for(const skillIndex of [0, 1]){
-				const skill = connection[skillIndex];
-				if(skill === skill0 || skill === skill1){
-					matches++;
+
+		for(const [index, connection] of $project.connections.entries()){
+			const otherSkillA = connection.skills[0];
+			const otherSkillB = connection.skills[1];
+
+			const swapped = skillA === otherSkillB && skillB === otherSkillA;
+			if((skillA === otherSkillA && skillB === otherSkillB) || swapped){
+				if(
+					swapped
+					|| connection.type !== $state.selectedConnectionType
+					|| connection.direction !== $state.selectedConnectionDirection
+				){
+					connection.skills[0] = skillA;
+					connection.skills[1] = skillB;
+					connection.type = $state.selectedConnectionType;
+					connection.direction = $state.selectedConnectionDirection;
+				}else{
+					$project.connections.splice(index, 1);
 				}
-			}
-			if(matches === 2){
-				$project.connections.splice(connectionIndex, 1);
+				$project.connections = $project.connections;
 				return;
 			}
 		}
-		$project.connections.push([
-			skill0,
-			skill1
-		]);
+
+		$project.connections.push({
+			type: $state.selectedConnectionType,
+			direction: $state.selectedConnectionDirection,
+			skills: [skillA, skillB]
+		});
 		$project.connections = $project.connections;
 	}
 
@@ -455,30 +465,79 @@
 	}
 
 	function drawConnections(){
-		ctx.strokeStyle = "#000000";
-		ctx.lineWidth = 4;
-		ctx.beginPath();
-
 		for(const connection of $project.connections){
-			const a = connection[0];
-			const b = connection[1];
-
-			if(a === undefined || b === undefined){
-				continue;
-			}
-
-			ctx.moveTo(a.pos.x, a.pos.y);
-			ctx.lineTo(b.pos.x, b.pos.y);
+			drawArrow(
+				connection.skills[0].pos,
+				connection.skills[1].pos,
+				connection.type,
+				connection.direction
+			);
 		}
 
 		if(previousSkill !== null){
 			const mouse = transformPosition({x: mouseX, y: mouseY});
 
-			ctx.moveTo(previousSkill.pos.x, previousSkill.pos.y);
-			ctx.lineTo(mouse.x, mouse.y);
+			drawArrow(
+				previousSkill.pos,
+				mouse,
+				$state.selectedConnectionType,
+				$state.selectedConnectionDirection
+			);
 		}
 
+	}
+
+	function drawArrow(start: editor.Position, end: editor.Position, type: editor.ConnectionType, direction: editor.ConnectionDirection){
+		switch(type){
+		case editor.ConnectionType.NORMAL:
+			ctx.strokeStyle = "#000000";
+			break;
+		case editor.ConnectionType.EXCLUSIVE:
+			ctx.strokeStyle = "#ff0000";
+			break;
+		}
+
+		ctx.lineWidth = 3;
+		ctx.beginPath();
+
+		ctx.moveTo(start.x, start.y);
+		ctx.lineTo(end.x, end.y);
+
 		ctx.stroke();
+
+		if (direction === editor.ConnectionDirection.UNIDIRECTIONAL) {
+			switch(type){
+			case editor.ConnectionType.NORMAL:
+				ctx.fillStyle = "#000000";
+				break;
+			case editor.ConnectionType.EXCLUSIVE:
+				ctx.fillStyle = "#ff0000";
+				break;
+			}
+
+			const centerX = (start.x + end.x) / 2;
+			const centerY = (start.y + end.y) / 2;
+			let normalX = end.x - start.x;
+			let normalY = end.y - start.y;
+			const normalLength = Math.sqrt(normalX * normalX + normalY * normalY);
+			normalX /= normalLength;
+			normalY /= normalLength;
+			const forwardX = normalX * 8;
+			const forwardY = normalY * 8;
+			const backwardX = forwardX / -2;
+			const backwardY = forwardY / -2;
+			const backX = centerX + backwardX;
+			const backY = centerY + backwardY;
+			const sideX = backwardY * Math.sqrt(3);
+			const sideY = -backwardX * Math.sqrt(3);
+
+			ctx.beginPath();
+			ctx.moveTo(centerX + forwardX, centerY + forwardY);
+			ctx.lineTo(backX - sideX, backY - sideY);
+			ctx.lineTo(backX + sideX, backY + sideY);
+			ctx.closePath();
+			ctx.fill();
+		}
 	}
 
 	function addDot(x: number, y: number){

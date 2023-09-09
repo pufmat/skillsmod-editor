@@ -17,6 +17,7 @@
 	let connectionsFile: File | undefined;
 
 	let saveMetadata = true;
+	let legacyConnectionsFormat = false;
 
 	async function importAll(){
 		if(definitionsFile === undefined || skillsFile === undefined || connectionsFile === undefined){
@@ -62,10 +63,43 @@
 			return skill;
 		});
 
-		$project.connections = Object.values(connectionsJson).map(connection => [
-			skillsMap.get(connection[0]),
-			skillsMap.get(connection[1])
-		]);
+		$project.connections = [];
+		if (Array.isArray(connectionsJson)) {
+			for(const skills of Object.values(connectionsJson)){
+				$project.connections.push({
+					type: editor.ConnectionType.NORMAL,
+					direction: editor.ConnectionDirection.BIDIRECTIONAL,
+					skills: skills.map(id => skillsMap.get(id))
+				});
+			}
+		} else {
+			for(const [type, group] of Object.entries(connectionsJson)){
+				for(const [direction, pairs] of Object.entries(group as object)){
+					for (const skills of pairs) {
+						$project.connections.push({
+							type: type as editor.ConnectionType,
+							direction: direction as editor.ConnectionDirection,
+							skills: skills.map(id => skillsMap.get(id))
+						});
+					}
+				}
+			}
+			$project.connections = $project.connections.flatMap(connection => {
+				if(connection.skills.length !== 2){
+					return [];
+				}
+				if(connection.skills[0] === undefined){
+					return [];
+				}
+				if(connection.skills[1] === undefined){
+					return [];
+				}
+				if(connection.skills[0] === connection.skills[1]){
+					return [];
+				}
+				return [connection];
+			});
+		}
 	}
 
 	function exportDefinitions(){
@@ -92,12 +126,25 @@
 	}
 
 	function exportConnections(){
-		editor.saveJson($project.connections.map(connection => {
-			return [0, 1].map(skillIndex => {
-				const skill = connection[skillIndex];
-				return skill.name;
-			})
-		}), "connections.json");
+		if(legacyConnectionsFormat){
+			editor.saveJson($project.connections.flatMap(connection => {
+				if(connection.type !== editor.ConnectionType.NORMAL){
+					return [];
+				}
+				if(connection.direction !== editor.ConnectionDirection.BIDIRECTIONAL){
+					return [];
+				}
+				return [connection.skills.map(skill => skill.name)];
+			}), "connections.json");
+		}else{
+			const connectionsJson = {};
+			for(const connection of $project.connections){
+				const groupJson = connectionsJson[connection.type] ??= {};
+				const directionJson = groupJson[connection.direction] ??= [];
+				directionJson.push(connection.skills.map(skill => skill.name));
+			}
+			editor.saveJson(connectionsJson, "connections.json");
+		}
 	}
 </script>
 
@@ -140,9 +187,16 @@
 </div>
 <Divider />
 <div class="option-container">
-	<Text>Save metadata:</Text>
-	<Spacer />
+	<HStack>
+		<Text>Save metadata:</Text>
+		<Spacer />
+	</HStack>
 	<Checkbox bind:checked={saveMetadata} />
+	<HStack>
+		<Text>Save connections in legacy format:</Text>
+		<Spacer />
+	</HStack>
+	<Checkbox bind:checked={legacyConnectionsFormat} />
 </div>
 
 
@@ -154,7 +208,7 @@
 	}
 	.option-container{
 		display: grid;
-		grid-template-columns: auto 1fr 20px;
+		grid-template-columns: auto 20px;
 		grid-template-rows: 20px;
 		gap: 2px;
 	}
