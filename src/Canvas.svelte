@@ -50,7 +50,7 @@
 			viewPos.y = mouse.y - viewDragStartPos.y;
 		}
 
-		if(skillDragStartPos !== null){
+		if(skillDragStartPos !== null && draggedSkill !== null){
 			const newPos = snapToGrid({
 				x: transformedMouse.x - skillDragStartPos.x,
 				y: transformedMouse.y - skillDragStartPos.y
@@ -119,9 +119,10 @@
 		switch(event.button){
 		case editor.Button.LEFT:
 			if(selectionStartPos !== null){
+				const startPos = selectionStartPos;
 				selectedSkills = $project.skills.filter((skill) => isSkillInsideSelection(
 					skill,
-					screenToEditorPos(selectionStartPos),
+					screenToEditorPos(startPos),
 					transformedMouse
 				));
 				selectionStartPos = null;
@@ -220,7 +221,7 @@
 		return $project.skills.find(skill => skill.pos.x === pos.x && skill.pos.y === pos.y) ?? null;
 	}
 
-	function createSkillAt(pos: editor.Position, definition: editor.Definition): boolean {
+	function createSkillAt(pos: editor.Position, definition: editor.Definition | null): boolean {
 		if(getSkillAt(pos) !== null){
 			return false;
 		}
@@ -256,7 +257,7 @@
 		return true;
 	}
 
-	function editSkill(skill: editor.Skill, definition: editor.Definition): boolean {
+	function editSkill(skill: editor.Skill, definition: editor.Definition | null): boolean {
 		if(skill.definition !== definition){
 			skill.definition = definition;
 			return true;
@@ -264,7 +265,7 @@
 		return false;
 	}
 
-	function toggleSkillAt(pos: editor.Position, definition: editor.Definition){
+	function toggleSkillAt(pos: editor.Position, definition: editor.Definition | null){
 		const skill = getSkillAt(pos);
 		if(skill !== null){
 			if(editSkill(skill, definition)){

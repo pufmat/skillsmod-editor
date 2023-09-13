@@ -28,13 +28,13 @@
 		const skillsJson = await editor.readJson(skillsFile);
 		const connectionsJson = await editor.readJson(connectionsFile);
 
-		if(definitionsJson === undefined || typeof definitionsJson !== "object"){
+		if(!definitionsJson || typeof definitionsJson !== "object"){
 			return;
 		}
-		if(skillsJson === undefined || typeof skillsJson !== "object"){
+		if(!skillsJson || typeof skillsJson !== "object"){
 			return;
 		}
-		if(connectionsJson === undefined || typeof connectionsJson !== "object"){
+		if(!connectionsJson || typeof connectionsJson !== "object"){
 			return;
 		}
 
@@ -52,7 +52,7 @@
 		$project.skills = Object.entries(skillsJson).map(([name, data]) => {
 			const skill: editor.Skill = {
 				name,
-				definition: $project.definitions.get(data.definition),
+				definition: $project.definitions.get(data.definition) ?? null,
 				pos: {
 					x: data.x,
 					y: data.y
@@ -69,7 +69,7 @@
 				$project.connections.push({
 					type: editor.ConnectionType.NORMAL,
 					direction: editor.ConnectionDirection.BIDIRECTIONAL,
-					skills: skills.map(id => skillsMap.get(id))
+					skills: skills.map((id: string) => skillsMap.get(id))
 				});
 			}
 		} else {
@@ -79,7 +79,7 @@
 						$project.connections.push({
 							type: type as editor.ConnectionType,
 							direction: direction as editor.ConnectionDirection,
-							skills: skills.map(id => skillsMap.get(id))
+							skills: skills.map((id: string) => skillsMap.get(id))
 						});
 					}
 				}
@@ -110,19 +110,19 @@
 				} : undefined
 			});
 			return json;
-		}, {}), "definitions.json");
+		}, {} as { [key: string]: unknown }), "definitions.json");
 	}
 
 	function exportSkills(){
 		editor.saveJson($project.skills.reduce((json, skill) => {
 			json[skill.name] = {
-				definition: skill.definition.name,
+				definition: skill.definition?.name,
 				x: skill.pos.x,
 				y: skill.pos.y,
 				root: skill.root
 			};
 			return json;
-		}, {}), "skills.json");
+		}, {} as { [key: string]: unknown }), "skills.json");
 	}
 
 	function exportConnections(){
@@ -137,7 +137,7 @@
 				return [connection.skills.map(skill => skill.name)];
 			}), "connections.json");
 		}else{
-			const connectionsJson = {};
+			const connectionsJson: { [key: string]: { [key: string]: string[][] }} = {};
 			for(const connection of $project.connections){
 				const groupJson = connectionsJson[connection.type] ??= {};
 				const directionJson = groupJson[connection.direction] ??= [];

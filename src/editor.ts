@@ -86,7 +86,7 @@ export function saveProject(project: Project) {
 			icon: definition.icon
 		};
 		return json;
-	}, {});
+	}, {} as { [key: string]: unknown });
 	const skillsJson = project.skills.reduce((json, skill) => {
 		json[skill.name] = {
 			definition: skill.definition?.name ?? null,
@@ -95,7 +95,7 @@ export function saveProject(project: Project) {
 			root: skill.root
 		};
 		return json;
-	}, {});
+	}, {} as { [key: string]: unknown });
 	const connectionsJson = project.connections.map(connection => {
 		return {
 			type: connection.type.toString(),
@@ -111,9 +111,9 @@ export function saveProject(project: Project) {
 
 export function loadProject(): Project {
 	try {
-		const definitionsJson: object = JSON.parse(localStorage.getItem("definitions"));
-		const skillsJson: object = JSON.parse(localStorage.getItem("skills"));
-		const connectionsJson: object = JSON.parse(localStorage.getItem("connections"));
+		const definitionsJson: object = JSON.parse(localStorage.getItem("definitions") ?? "");
+		const skillsJson: object = JSON.parse(localStorage.getItem("skills") ?? "");
+		const connectionsJson: object = JSON.parse(localStorage.getItem("connections") ?? "");
 
 		const definitions = new Map(Object.entries(definitionsJson).map(([name, {icon, data}]) => [
 			name, {name, icon, data}
@@ -124,7 +124,7 @@ export function loadProject(): Project {
 		const skills = Object.entries(skillsJson).map(([name, data]) => {
 			const skill: Skill = {
 				name,
-				definition: data.definition ? definitions.get(data.definition) : null,
+				definition: definitions.get(data.definition) ?? null,
 				pos: {
 					x: data.x,
 					y: data.y
@@ -146,7 +146,7 @@ export function loadProject(): Project {
 				return {
 					type: connection.type as ConnectionType,
 					direction: connection.direction as ConnectionDirection,
-					skills: connection.skills.map(id => skillsMap.get(id))
+					skills: connection.skills.map((id: string) => skillsMap.get(id))
 				};
 			}
 		}).flatMap(connection => {
@@ -184,7 +184,7 @@ export function randomIdentifier(): string {
 	return Array.from(Array(16), () => Math.floor(Math.random() * 36).toString(36)).join("");
 }
 
-export async function readJson(file: File){
+export async function readJson(file: File): Promise<unknown> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
 		reader.onload = () => {
@@ -198,7 +198,7 @@ export async function readJson(file: File){
 	});
 }
 
-export function saveJson(json, name: string){
+export function saveJson(json: unknown, name: string){
 	const a = document.createElement("a");
 	a.download = name;
 	a.href = URL.createObjectURL(new Blob([
@@ -209,7 +209,7 @@ export function saveJson(json, name: string){
 	a.click();
 }
 
-export function persistent<T>(save: (T) => void, load: () => T): Writable<T> {
+export function persistent<T>(save: (arg: T) => void, load: () => T): Writable<T> {
 	const store = writable(load());
 
 	return {
