@@ -30,47 +30,63 @@
 		<legend>Instructions</legend>
 		<VStack>
 			<HStack>
-				<Text>Left Click - move view or drag skill.</Text>
+				<Text><kbd><kbd>Left-Click</kbd></kbd> - Move skill.</Text>
 				<Spacer />
 			</HStack>
 			<HStack>
-				<Text>Middle Click - add or delete connection.</Text>
+				<Text><kbd><kbd>Middle-Click</kbd></kbd> - Pan view, add or delete connection.</Text>
 				<Spacer />
 			</HStack>
 			<HStack>
-				<Text>Right Click - add or edit or delete skill.</Text>
+				<Text><kbd><kbd>Right-Click</kbd></kbd> - Add or edit or delete skill.</Text>
 				<Spacer />
 			</HStack>
 			<HStack>
-				<Text>Scroll - zoom view.</Text>
+				<Text><kbd><kbd>Scroll</kbd></kbd> - Zoom view.</Text>
 				<Spacer />
 			</HStack>
 			<HStack>
-				<Text>Key A - add skill.</Text>
+				<Text><kbd><kbd>A</kbd></kbd> - Add skill.</Text>
 				<Spacer />
 			</HStack>
 			<HStack>
-				<Text>Key E - edit skill.</Text>
+				<Text><kbd><kbd>T</kbd></kbd> - Add or edit or delete skill.</Text>
 				<Spacer />
 			</HStack>
 			<HStack>
-				<Text>Key D - delete skill.</Text>
+				<Text><kbd><kbd>C</kbd></kbd> - Add or delete connection.</Text>
 				<Spacer />
 			</HStack>
 			<HStack>
-				<Text>Key T - add or edit or delete skill.</Text>
+				<Text><kbd><kbd>E</kbd></kbd> - Edit skill.</Text>
 				<Spacer />
 			</HStack>
 			<HStack>
-				<Text>Key C - add or delete connection.</Text>
+				<Text><kbd><kbd>Shift</kbd> + <kbd>E</kbd></kbd> - Edit selected skills.</Text>
 				<Spacer />
 			</HStack>
 			<HStack>
-				<Text>Key X - delete all connections.</Text>
+				<Text><kbd><kbd>D</kbd></kbd> - Delete skill.</Text>
 				<Spacer />
 			</HStack>
 			<HStack>
-				<Text>Key R - toggle root skill.</Text>
+				<Text><kbd><kbd>Shift</kbd> + <kbd>D</kbd></kbd> - Delete selected skills.</Text>
+				<Spacer />
+			</HStack>
+			<HStack>
+				<Text><kbd><kbd>R</kbd></kbd> - Set or unset root for skill.</Text>
+				<Spacer />
+			</HStack>
+			<HStack>
+				<Text><kbd><kbd>Shift</kbd> + <kbd>R</kbd></kbd> - Set or unset root for selected skills.</Text>
+				<Spacer />
+			</HStack>
+			<HStack>
+				<Text><kbd><kbd>X</kbd></kbd> - Delete all connections for skill.</Text>
+				<Spacer />
+			</HStack>
+			<HStack>
+				<Text><kbd><kbd>Shift</kbd> + <kbd>X</kbd></kbd> - Delete all connections for selected skills.</Text>
 				<Spacer />
 			</HStack>
 		</VStack>
@@ -95,5 +111,18 @@
 	}
 	legend {
 		font-size: 16px;
+	}
+	kbd {
+		display: inline;
+		white-space: nowrap;
+		display: inline-block;
+		line-height: 1;
+		margin: 0.5px;
+	}
+	kbd > kbd {
+		border-radius: 4px;
+		padding: 1px;
+		background-color: #cccccc;
+		border: 1px solid #888888;
 	}
 </style>

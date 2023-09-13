@@ -13,20 +13,17 @@
 	let ctx: CanvasRenderingContext2D;
 
 	let viewScale = 1;
-	let viewX = 0;
-	let viewY = 0;
+	let viewPos = {x: 0, y: 0}; // Screen Space
+	let viewDragStartPos: editor.Position | null = null; // Screen Space
+	let selectionStartPos: editor.Position | null = null; // Screen Space
+	let skillDragStartPos: editor.Position | null = null;  // Editor Space
 
-	let mouseX = 0;
-	let mouseY = 0;
+	let mouse = {x: 0, y: 0}; // Screen Space
+	let transformedMouse = {x: 0, y: 0}; // Editor Space
 
-	let dragX = 0;
-	let dragY = 0;
-	let viewDragX = 0;
-	let viewDragY = 0;
-	let dragging = false;
-
-	let draggedSkill: editor.Skill | null = null;
 	let previousSkill: editor.Skill | null = null;
+	let draggedSkill: editor.Skill | null = null;
+	let selectedSkills: editor.Skill[] = [];
 
 	onMount(() => {
 		let newCtx = canvasElement.getContext("2d");
@@ -46,22 +43,34 @@
 	}
 
 	function mouseMove(event: MouseEvent){
-		mouseX = event.offsetX;
-		mouseY = event.offsetY;
+		updateMouse(event.offsetX, event.offsetY);
 
-		if(dragging){
-			if(draggedSkill === null){
-				viewX = mouseX - viewDragX;
-				viewY = mouseY - viewDragY;
-			}else{
-				const mouse = transformPosition({x: mouseX, y: mouseY});
-				const newPos = snapToGrid({
-					x: mouse.x - dragX,
-					y: mouse.y - dragY
+		if(viewDragStartPos !== null){
+			viewPos.x = mouse.x - viewDragStartPos.x;
+			viewPos.y = mouse.y - viewDragStartPos.y;
+		}
+
+		if(skillDragStartPos !== null){
+			const newPos = snapToGrid({
+				x: transformedMouse.x - skillDragStartPos.x,
+				y: transformedMouse.y - skillDragStartPos.y
+			});
+
+			const dx = newPos.x - draggedSkill.pos.x;
+			const dy = newPos.y - draggedSkill.pos.y;
+
+			if(Array.from(selectedSkills).every(skill => {
+				const collidingSkill = getSkillAt({
+					x: skill.pos.x + dx,
+					y: skill.pos.y + dy
 				});
-				if($project.skills.find(skill => skill.pos.x === newPos.x && skill.pos.y === newPos.y) === undefined){
-					draggedSkill.pos = newPos;
+				return collidingSkill === null || selectedSkills.includes(collidingSkill);
+			})){
+				for(const skill of selectedSkills){
+					skill.pos.x += dx;
+					skill.pos.y += dy;
 				}
+				$project.skills = $project.skills;
 			}
 		}
 
@@ -69,38 +78,65 @@
 	}
 
 	function mouseDown(event: MouseEvent){
-		mouseX = event.offsetX;
-		mouseY = event.offsetY;
+		updateMouse(event.offsetX, event.offsetY);
 
-		if(event.button === editor.Button.LEFT){
-			const mouse = transformPosition({x: mouseX, y: mouseY});
-			draggedSkill = $project.skills.find((skill) => isMouseInsideSkill(mouse, skill)) ?? null;
+		switch(event.button){
+		case editor.Button.LEFT:
+			draggedSkill = $project.skills.find((skill) => isMouseInsideSkill(transformedMouse, skill)) ?? null;
 			if(draggedSkill === null){
-				viewDragX = mouseX - viewX;
-				viewDragY = mouseY - viewY;
+				selectionStartPos = {
+					x: mouse.x,
+					y: mouse.y
+				};
 			}else{
-				dragX = mouse.x - draggedSkill.pos.x;
-				dragY = mouse.y - draggedSkill.pos.y;
+				if(!selectedSkills.includes(draggedSkill)){
+					selectedSkills = [draggedSkill];
+				}
+				skillDragStartPos = {
+					x: transformedMouse.x - draggedSkill.pos.x,
+					y: transformedMouse.y - draggedSkill.pos.y
+				};
 			}
-			dragging = true;
+			break;
+		case editor.Button.MIDDLE:
+			if($project.skills.some((skill) => isMouseInsideSkill(transformedMouse, skill))){
+				toggleConnectionAt(snapToGrid(transformedMouse), $state.selectedConnectionType, $state.selectedConnectionDirection);
+			}else{
+				viewDragStartPos = {
+					x: mouse.x - viewPos.x,
+					y: mouse.y - viewPos.y
+				};
+			}
+			break;
 		}
 
 		update();
 	}
 
 	function mouseUp(event: MouseEvent){
-		mouseX = event.offsetX;
-		mouseY = event.offsetY;
+		updateMouse(event.offsetX, event.offsetY);
 
 		switch(event.button){
 		case editor.Button.LEFT:
-			dragging = false;
+			if(selectionStartPos !== null){
+				selectedSkills = $project.skills.filter((skill) => isSkillInsideSelection(
+					skill,
+					screenToEditorPos(selectionStartPos),
+					transformedMouse
+				));
+				selectionStartPos = null;
+			}
+			skillDragStartPos = null;
 			break;
 		case editor.Button.MIDDLE:
-			toggleConnectionAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			if(viewDragStartPos === null){
+				toggleConnectionAt(snapToGrid(transformedMouse), $state.selectedConnectionType, $state.selectedConnectionDirection);
+			}else{
+				viewDragStartPos = null;
+			}
 			break;
 		case editor.Button.RIGHT:
-			toggleSkillAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			toggleSkillAt(snapToGrid(transformedMouse), $state.selectedDefinition);
 			break;
 		}
 
@@ -115,112 +151,146 @@
 
 		viewScale *= factor;
 
-		let dx = (factor - 1) * (mouseX - width / 2 - viewX);
-		let dy = (factor - 1) * (mouseY - height / 2 - viewY);
+		let dx = (factor - 1) * (mouse.x - width / 2 - viewPos.x);
+		let dy = (factor - 1) * (mouse.y - height / 2 - viewPos.y);
 
-		viewX -= dx;
-		viewY -= dy;
-		viewDragX += dx;
-		viewDragY += dy;
+		viewPos.x -= dx;
+		viewPos.y -= dy;
+		if(viewDragStartPos !== null){
+			viewDragStartPos.x += dx;
+			viewDragStartPos.y += dy;
+		}
 
 		update();
 	}
 
 	function keyUp(event: KeyboardEvent){
+		const snappedMouse = snapToGrid(transformedMouse);
+
 		switch(event.key){
 		case "a":
-			createSkillAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
-			break;
+			createSkillAt(snappedMouse, $state.selectedDefinition);
+			return;
+		case "t":
+			toggleSkillAt(snappedMouse, $state.selectedDefinition);
+			return;
+		case "c":
+			toggleConnectionAt(snappedMouse, $state.selectedConnectionType, $state.selectedConnectionDirection);
+			return;
+		}
+
+		let skills = selectedSkills;
+
+		const lowerCaseKey = event.key.toLowerCase();
+		if(event.key === lowerCaseKey){
+			const skill = getSkillAt(snappedMouse);
+			skills = skill === null ? [] : [skill];
+		}
+
+		switch(lowerCaseKey){
 		case "e":
-			editSkillAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			for(const skill of skills){
+				editSkill(skill, $state.selectedDefinition);
+			}
 			break;
 		case "d":
-			deleteSkillAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
-			break;
-		case "t":
-			toggleSkillAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			for(const skill of skills){
+				deleteSkill(skill);
+			}
 			break;
 		case "r":
-			toggleRootAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
-			break;
-		case "c":
-			toggleConnectionAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			toggleManyRoots(skills);
 			break;
 		case "x":
-			removeConnectionsAt(snapToGrid(transformPosition({x: mouseX, y: mouseY})));
+			for(const skill of skills){
+				removeAllConnections(skill);
+			}
+			break;
+		case "c":
+			if(skills.length <= 16){
+				toggleManyConnections(skills, $state.selectedConnectionType);
+			}
 			break;
 		}
 
 		update();
 	}
 
-	function createSkillAt(pos: editor.Position): boolean {
-		if(getSkillAt(pos) === null){
-			let newName: string;
-			do{
-				newName = editor.randomIdentifier();
-			}while($project.skills.some(skill => skill.name === newName));
+	function getSkillAt(pos: editor.Position): editor.Skill | null {
+		return $project.skills.find(skill => skill.pos.x === pos.x && skill.pos.y === pos.y) ?? null;
+	}
 
-			const newSkill: editor.Skill = {
-				name: newName,
-				definition: $state.selectedDefinition,
-				pos: pos,
-				root: false
-			};
-			$project.skills.push(newSkill);
-			$project.skills = $project.skills;
+	function createSkillAt(pos: editor.Position, definition: editor.Definition): boolean {
+		if(getSkillAt(pos) !== null){
+			return false;
+		}
+		let name: string;
+		do{
+			name = editor.randomIdentifier();
+		}while($project.skills.some(skill => skill.name === name));
+
+		const newSkill: editor.Skill = {
+			name,
+			definition,
+			pos,
+			root: false
+		};
+		$project.skills.push(newSkill);
+		$project.skills = $project.skills;
+		return true;
+	}
+
+	function deleteSkill(skill: editor.Skill): boolean {
+		const index = $project.skills.indexOf(skill);
+		if(index === -1){
+			return false;
+		}
+
+		removeAllConnections(skill);
+		if(previousSkill === skill){
+			previousSkill = null;
+		}
+
+		$project.skills.splice(index, 1);
+		$project.skills = $project.skills;
+		return true;
+	}
+
+	function editSkill(skill: editor.Skill, definition: editor.Definition): boolean {
+		if(skill.definition !== definition){
+			skill.definition = definition;
 			return true;
 		}
 		return false;
 	}
 
-	function deleteSkillAt(pos: editor.Position): boolean {
-		const oldLength = $project.skills.length;
-		$project.skills = $project.skills.filter(skill => {
-			if(skill.pos.x === pos.x && skill.pos.y === pos.y){
-				removeConnections(skill);
-				if(skill === previousSkill){
-					previousSkill = null;
-				}
-				return false;
-			}else{
-				return true;
-			}
-		});
-		return $project.skills.length !== oldLength;
-	}
-
-	function editSkillAt(pos: editor.Position): boolean {
+	function toggleSkillAt(pos: editor.Position, definition: editor.Definition){
 		const skill = getSkillAt(pos);
 		if(skill !== null){
-			if(skill.definition !== $state.selectedDefinition){
-				skill.definition = $state.selectedDefinition;
-				return true;
+			if(editSkill(skill, definition)){
+				return;
+			}
+			if(deleteSkill(skill)){
+				return;
 			}
 		}
-		return false;
+		createSkillAt(pos, definition);
 	}
 
-	function toggleSkillAt(pos: editor.Position){
-		if(editSkillAt(pos)){
-			return;
+	function toggleManyRoots(skills: editor.Skill[]){
+		if(skills.every(skill => skill.root)){
+			for(const skill of skills){
+				skill.root = false;
+			}
+		}else{
+			for(const skill of skills){
+				skill.root = true;
+			}
 		}
-		if(deleteSkillAt(pos)){
-			return;
-		}
-		createSkillAt(pos);
+		$project.skills = $project.skills;
 	}
 
-	function toggleRootAt(pos: editor.Position){
-		const skill = getSkillAt(pos);
-		if(skill !== null){
-			skill.root = !skill.root;
-			$project.skills = $project.skills;
-		}
-		return false;
-	}
-
-	function toggleConnectionAt(pos: editor.Position){
+	function toggleConnectionAt(pos: editor.Position, type: editor.ConnectionType, direction: editor.ConnectionDirection){
 		const skill = getSkillAt(pos);
 		if(skill === null){
 			previousSkill = null;
@@ -228,30 +298,19 @@
 			previousSkill = skill;
 		}else{
 			if(skill !== previousSkill){
-				toggleConnection(previousSkill, skill);
+				toggleConnection(previousSkill, skill, type, direction);
 			}
 			previousSkill = null;
 		}
 	}
 
-	function removeConnectionsAt(pos: editor.Position){
-		const skill = getSkillAt(pos);
-		if(skill !== null){
-			removeConnections(skill);
-		}
-	}
-
-	function getSkillAt(pos: editor.Position) {
-		return $project.skills.find(skill => skill.pos.x === pos.x && skill.pos.y === pos.y) ?? null;
-	}
-
-	function removeConnections(targetSkill: editor.Skill){
+	function removeAllConnections(skill: editor.Skill){
 		$project.connections = $project.connections.filter(connection => {
-			return !connection.skills.some(skill => skill === targetSkill);
+			return !connection.skills.includes(skill);
 		});
 	}
 
-	function toggleConnection(skillA: editor.Skill, skillB: editor.Skill){
+	function toggleConnection(skillA: editor.Skill, skillB: editor.Skill, type: editor.ConnectionType, direction: editor.ConnectionDirection){
 		if(skillA === skillB){
 			return;
 		}
@@ -263,14 +322,17 @@
 			const swapped = skillA === otherSkillB && skillB === otherSkillA;
 			if((skillA === otherSkillA && skillB === otherSkillB) || swapped){
 				if(
-					swapped
-					|| connection.type !== $state.selectedConnectionType
-					|| connection.direction !== $state.selectedConnectionDirection
+					(
+						swapped
+						&& direction === editor.ConnectionDirection.UNIDIRECTIONAL
+					)
+					|| connection.type !== type
+					|| connection.direction !== direction
 				){
 					connection.skills[0] = skillA;
 					connection.skills[1] = skillB;
-					connection.type = $state.selectedConnectionType;
-					connection.direction = $state.selectedConnectionDirection;
+					connection.type = type;
+					connection.direction = direction;
 				}else{
 					$project.connections.splice(index, 1);
 				}
@@ -280,35 +342,94 @@
 		}
 
 		$project.connections.push({
-			type: $state.selectedConnectionType,
-			direction: $state.selectedConnectionDirection,
+			type,
+			direction,
 			skills: [skillA, skillB]
 		});
 		$project.connections = $project.connections;
 	}
 
-	function transformPosition(pos: editor.Position): editor.Position{
+	function toggleManyConnections(skills: editor.Skill[], type: editor.ConnectionType){
+		const pairs = skills.flatMap(skillA => skills.slice(1).map(skillB => [skillA, skillB] as const));
+
+		if(pairs.filter(pair => createConnection(...pair, type)).length === 0){
+			for(const pair of pairs){
+				removeConnection(...pair);
+			}
+		}
+	}
+
+	function createConnection(skillA: editor.Skill, skillB: editor.Skill, type: editor.ConnectionType): boolean {
+		if(skillA === skillB){
+			return false;
+		}
+
+		for(const connection of $project.connections.values()){
+			const otherSkillA = connection.skills[0];
+			const otherSkillB = connection.skills[1];
+
+			if((skillA === otherSkillA && skillB === otherSkillB) || (skillA === otherSkillB && skillB === otherSkillA)){
+				if(connection.type === type && connection.direction === editor.ConnectionDirection.BIDIRECTIONAL){
+					return false;
+				}else{
+					connection.type = type;
+					connection.direction = editor.ConnectionDirection.BIDIRECTIONAL;
+					$project.connections = $project.connections;
+					return true;
+				}
+			}
+		}
+
+		$project.connections.push({
+			type: type,
+			direction: editor.ConnectionDirection.BIDIRECTIONAL,
+			skills: [skillA, skillB]
+		});
+		$project.connections = $project.connections;
+		return true;
+	}
+
+	function removeConnection(skillA: editor.Skill, skillB: editor.Skill): boolean {
+		const oldLength = $project.connections.length;
+		$project.connections = $project.connections.filter(connection => {
+			const otherSkillA = connection.skills[0];
+			const otherSkillB = connection.skills[1];
+
+			return (skillA !== otherSkillA || skillB !== otherSkillB) && (skillA !== otherSkillB || skillB !== otherSkillA);
+		});
+		return $project.connections.length !== oldLength;
+	}
+
+	function updateMouse(x: number, y: number) {
+		mouse.x = x;
+		mouse.y = y;
+
+		transformedMouse = screenToEditorPos(mouse);
+	}
+
+	function screenToEditorPos(pos: editor.Position){
 		const width = canvasElement.width;
 		const height = canvasElement.height;
 
-		return scalePosition({
-			x: pos.x - viewX - width / 2,
-			y: pos.y - viewY - height / 2
-		})
+		return {
+			x: (pos.x - viewPos.x - width / 2) / viewScale,
+			y: (pos.y - viewPos.y - height / 2) / viewScale
+		};
 	}
 
-	function scalePosition(pos: editor.Position): editor.Position{
-		return {
-			x: pos.x / viewScale,
-			y: pos.y / viewScale
-		}
+	function isSkillInsideSelection(skill: editor.Skill, selectionStart: editor.Position, selectionEnd: editor.Position){
+		const minX = Math.min(selectionStart.x, selectionEnd.x);
+		const minY = Math.min(selectionStart.y, selectionEnd.y);
+		const maxX = Math.max(selectionStart.x, selectionEnd.x);
+		const maxY = Math.max(selectionStart.y, selectionEnd.y);
+		return skill.pos.x - 13 > minX && skill.pos.y - 13 > minY && skill.pos.x + 13 < maxX && skill.pos.y + 13 < maxY;
 	}
 
 	function isMouseInsideSkill(mouse: editor.Position, skill: editor.Skill){
 		return mouse.x > skill.pos.x - 13 && mouse.y > skill.pos.y - 13 && mouse.x < skill.pos.x + 13 && mouse.y < skill.pos.y + 13;
 	}
 
-	function snapToGrid(pos: editor.Position): editor.Position{
+	function snapToGrid(pos: editor.Position): editor.Position {
 		switch($grid.type){
 		case editor.GridType.NONE:
 			return pos;
@@ -358,17 +479,15 @@
 	}
 
 	function updateTooltip(){
-		const mouse = transformPosition({x: mouseX, y: mouseY});
-
 		for(const skill of $project.skills){
 			if(skill.definition === null){
 				continue;
 			}
-			if(isMouseInsideSkill(mouse, skill)){
+			if(isMouseInsideSkill(transformedMouse, skill)){
 				tooltipElement.innerText = skill.definition.name;
 				tooltipElement.style.visibility = "visible";
-				tooltipElement.style.left = mouseX + "px";
-				tooltipElement.style.top = mouseY + "px";
+				tooltipElement.style.left = mouse.x + "px";
+				tooltipElement.style.top = mouse.y + "px";
 				return;
 			}
 		}
@@ -382,11 +501,35 @@
 
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 		ctx.clearRect(0, 0, width, height);
-		ctx.setTransform(viewScale, 0, 0, viewScale, viewX + width / 2, viewY + height / 2);
+
+		ctx.setTransform(viewScale, 0, 0, viewScale, viewPos.x + width / 2, viewPos.y + height / 2);
 
 		drawGrid();
 		drawConnections();
 		drawSkills();
+
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+		drawSelection();
+	}
+
+	function drawSelection(){
+		if(selectionStartPos !== null){
+			ctx.strokeStyle = "#0000ff";
+			ctx.fillStyle = "rgba(0, 0, 255, 0.25)";
+			ctx.lineWidth = 2;
+			ctx.setLineDash([3, 3]);
+			ctx.beginPath();
+			ctx.rect(
+				selectionStartPos.x,
+				selectionStartPos.y,
+				mouse.x - selectionStartPos.x,
+				mouse.y - selectionStartPos.y
+			);
+			ctx.closePath();
+			ctx.stroke();
+			ctx.fill();
+		}
 	}
 
 	function drawGrid(){
@@ -462,6 +605,25 @@
 			jdenticon.drawIcon(ctx, skill.definition.icon, 26);
 		}
 		ctx.restore();
+
+		ctx.strokeStyle = "#0000ff";
+		ctx.fillStyle = "rgba(0, 0, 255, 0.25)";
+		ctx.lineWidth = 2;
+		ctx.setLineDash([3, 3]);
+		ctx.beginPath();
+		for(const skill of $project.skills){
+			if(selectedSkills.includes(skill)){
+				ctx.rect(
+					skill.pos.x - 16,
+					skill.pos.y - 16,
+					32,
+					32
+				);
+			}
+		}
+		ctx.closePath();
+		ctx.stroke();
+		ctx.fill();
 	}
 
 	function drawConnections(){
@@ -475,11 +637,9 @@
 		}
 
 		if(previousSkill !== null){
-			const mouse = transformPosition({x: mouseX, y: mouseY});
-
 			drawArrow(
 				previousSkill.pos,
-				mouse,
+				transformedMouse,
 				$state.selectedConnectionType,
 				$state.selectedConnectionDirection
 			);
@@ -499,6 +659,7 @@
 
 		ctx.lineWidth = 3;
 		ctx.beginPath();
+		ctx.setLineDash([]);
 
 		ctx.moveTo(start.x, start.y);
 		ctx.lineTo(end.x, end.y);
