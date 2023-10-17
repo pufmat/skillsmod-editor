@@ -82,7 +82,7 @@
 
 		switch(event.button){
 		case editor.Button.LEFT:
-			draggedSkill = $project.skills.find((skill) => isMouseInsideSkill(transformedMouse, skill)) ?? null;
+			draggedSkill = getHoveredSkill(transformedMouse);
 			if(draggedSkill === null){
 				selectionStartPos = {
 					x: mouse.x,
@@ -100,7 +100,10 @@
 			break;
 		case editor.Button.MIDDLE:
 			if($project.skills.some((skill) => isMouseInsideSkill(transformedMouse, skill))){
-				toggleConnectionAt(snapToGrid(transformedMouse), $state.selectedConnectionType, $state.selectedConnectionDirection);
+				const hoveredSkill = getHoveredSkill(transformedMouse);
+				if(hoveredSkill !== null){
+					beginConnection(hoveredSkill);
+				}
 			}else{
 				viewDragStartPos = {
 					x: mouse.x - viewPos.x,
@@ -131,7 +134,10 @@
 			break;
 		case editor.Button.MIDDLE:
 			if(viewDragStartPos === null){
-				toggleConnectionAt(snapToGrid(transformedMouse), $state.selectedConnectionType, $state.selectedConnectionDirection);
+				const hoveredSkill = getHoveredSkill(transformedMouse);
+				if(hoveredSkill !== null){
+					endConnection(hoveredSkill, $state.selectedConnectionType, $state.selectedConnectionDirection);
+				}
 			}else{
 				viewDragStartPos = null;
 			}
@@ -166,17 +172,15 @@
 	}
 
 	function keyUp(event: KeyboardEvent){
-		const snappedMouse = snapToGrid(transformedMouse);
-
 		switch(event.key){
 		case "a":
-			createSkillAt(snappedMouse, $state.selectedDefinition);
+			createSkill(transformedMouse, $state.selectedDefinition);
 			return;
 		case "t":
-			toggleSkillAt(snappedMouse, $state.selectedDefinition);
+			toggleSkillAt(transformedMouse, $state.selectedDefinition);
 			return;
 		case "c":
-			toggleConnectionAt(snappedMouse, $state.selectedConnectionType, $state.selectedConnectionDirection);
+			toggleConnectionAt(transformedMouse, $state.selectedConnectionType, $state.selectedConnectionDirection);
 			return;
 		}
 
@@ -184,7 +188,7 @@
 
 		const lowerCaseKey = event.key.toLowerCase();
 		if(event.key === lowerCaseKey){
-			const skill = getSkillAt(snappedMouse);
+			const skill = getHoveredSkill(transformedMouse);
 			skills = skill === null ? [] : [skill];
 		}
 
@@ -221,23 +225,30 @@
 		return $project.skills.find(skill => skill.pos.x === pos.x && skill.pos.y === pos.y) ?? null;
 	}
 
-	function createSkillAt(pos: editor.Position, definition: editor.Definition | null): boolean {
-		if(getSkillAt(pos) !== null){
+	function getHoveredSkill(mouse: editor.Position): editor.Skill | null {
+		return $project.skills.find((skill) => isMouseInsideSkill(mouse, skill)) ?? null
+	}
+
+	function createSkill(pos: editor.Position, definition: editor.Definition | null): boolean {
+		const snappedPos = snapToGrid(pos);
+
+		if(getSkillAt(snappedPos) !== null){
 			return false;
 		}
+
 		let name: string;
 		do{
 			name = editor.randomIdentifier();
 		}while($project.skills.some(skill => skill.name === name));
 
-		const newSkill: editor.Skill = {
+		$project.skills.push({
 			name,
 			definition,
-			pos,
+			pos: snappedPos,
 			root: false
-		};
-		$project.skills.push(newSkill);
+		});
 		$project.skills = $project.skills;
+
 		return true;
 	}
 
@@ -266,16 +277,16 @@
 	}
 
 	function toggleSkillAt(pos: editor.Position, definition: editor.Definition | null){
-		const skill = getSkillAt(pos);
-		if(skill !== null){
-			if(editSkill(skill, definition)){
+		const hoveredSkill = getHoveredSkill(pos);
+		if(hoveredSkill !== null){
+			if(editSkill(hoveredSkill, definition)){
 				return;
 			}
-			if(deleteSkill(skill)){
+			if(deleteSkill(hoveredSkill)){
 				return;
 			}
 		}
-		createSkillAt(pos, definition);
+		createSkill(pos, definition);
 	}
 
 	function toggleManyRoots(skills: editor.Skill[]){
@@ -292,12 +303,22 @@
 	}
 
 	function toggleConnectionAt(pos: editor.Position, type: editor.ConnectionType, direction: editor.ConnectionDirection){
-		const skill = getSkillAt(pos);
-		if(skill === null){
-			previousSkill = null;
-		}else if(previousSkill === null){
-			previousSkill = skill;
-		}else{
+		const hoveredSkill = getHoveredSkill(pos);
+		if(hoveredSkill !== null){
+			if(previousSkill === null){
+				beginConnection(hoveredSkill);
+			}else{
+				endConnection(hoveredSkill, type, direction);
+			}
+		}
+	}
+
+	function beginConnection(skill: editor.Skill){
+		previousSkill = skill;
+	}
+
+	function endConnection(skill: editor.Skill, type: editor.ConnectionType, direction: editor.ConnectionDirection){
+		if(previousSkill !== null){
 			if(skill !== previousSkill){
 				toggleConnection(previousSkill, skill, type, direction);
 			}
