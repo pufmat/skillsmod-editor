@@ -1,8 +1,8 @@
 <script lang="ts">
 	import * as jdenticon from "jdenticon";
 
-	export let value;
-	let svg;
+	export let value: string;
+	let svg: SVGElement;
 
 	$: jdenticon.updateSvg(svg, value ?? "");
 </script>

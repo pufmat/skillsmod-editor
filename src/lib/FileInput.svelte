@@ -2,16 +2,16 @@
 	let files: FileList | undefined;
 	export let file: File | undefined = undefined;
 
-	$: file = files && files.length >= 0 ? files[0] : undefined;
+	$: file = files && files.length > 0 ? files[0] : undefined;
 </script>
 
 <div class="file-input">
 	<label>
 		<input type="file" bind:files on:input>
-		{#if files && files.length >= 0}
-			<div class="file-picker">{files[0].name}</div>
+		{#if file === undefined}
+		<div class="file-picker">Choose a file...</div>
 		{:else}
-			<div class="file-picker">Choose a file...</div>
+		<div class="file-picker">{file.name}</div>
 		{/if}
 	</label>
 </div>

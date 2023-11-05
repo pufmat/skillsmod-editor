@@ -44,12 +44,12 @@
 		$project.definitions = $project.definitions;
 	}
 
-	function changeIcon(definition){
+	function changeIcon(definition: editor.Definition){
 		definition.icon = editor.randomIdentifier();
 		$project.definitions = $project.definitions;
 	}
 
-	function openModal(definition){
+	function openModal(definition: editor.Definition){
 		newName = definition.name;
 		modalDefinition = definition;
 		modalVisible = true;
