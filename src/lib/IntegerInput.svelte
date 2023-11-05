@@ -9,9 +9,9 @@
 	input {
 		flex: 1;
 		width: 100%;
-		color: #000000;
-		background-color: #ffffff;
-		border: 1px solid #888888;
+		color: inherit;
+		background-color: var(--input-background-color);
+		border: 1px solid var(--input-border-color);
 		border-radius: 4px;
 		padding: 3px 6px;
 		font-size: 16px;
@@ -20,7 +20,8 @@
 		cursor: text;
 	}
 	input:disabled {
-		background-color: #cccccc;
+		background-color: var(--disabled-input-background-color);
+		border-color: var(--disabled-input-border-color);
 		cursor: default;
 	}
 </style>

@@ -4,6 +4,7 @@
     import Sidebar from "./Sidebar.svelte";
     import { writable } from "svelte/store";
     import { setContext } from "svelte";
+    import { FallbackTheme, applyTheme } from "./theme";
 
 	setContext("grid", writable<editor.Grid>({
 		type: editor.GridType.SQUARE,
@@ -18,6 +19,13 @@
 		selectedConnectionType: editor.ConnectionType.NORMAL,
 		selectedConnectionDirection: editor.ConnectionDirection.BIDIRECTIONAL
 	}));
+
+	const settings = editor.persistent<editor.Settings>(editor.saveSettings, editor.loadSettings);
+	setContext("settings", settings);
+
+	const systemTheme = editor.systemTheme();
+
+	$: applyTheme($settings.theme, $systemTheme, FallbackTheme.LIGHT);
 </script>
 
 <div class="container">
@@ -25,7 +33,7 @@
 	<Canvas />
 </div>
 
-<style>
+<style lang="scss">
 	.container {
 		width: 100%;
 		height: 100%;
@@ -41,6 +49,12 @@
 		border: 0;
 		border-spacing: 0;
 		font-size: 0;
+	}
+	:global(body) {
+		width: 100%;
+		height: 100%;
+		color: var(--text-color);
+		background-color: var(--background-color);
 	}
 	:global(*){
 		box-sizing: border-box;

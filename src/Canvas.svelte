@@ -3,6 +3,7 @@
 	import {getContext, onMount} from "svelte";
     import type { Writable } from "svelte/store";
 	import * as jdenticon from "jdenticon";
+    import { activeTheme } from "./theme";
 
 	let grid = getContext<Writable<editor.Grid>>("grid");
 	let project = getContext<Writable<editor.Project>>("project");
@@ -24,6 +25,8 @@
 	let previousSkill: editor.Skill | null = null;
 	let draggedSkill: editor.Skill | null = null;
 	let selectedSkills: editor.Skill[] = [];
+
+	const theme = activeTheme();
 
 	onMount(() => {
 		let newCtx = canvasElement.getContext("2d");
@@ -542,8 +545,8 @@
 
 	function drawSelection(){
 		if(selectionStartPos !== null){
-			ctx.strokeStyle = "#0000ff";
-			ctx.fillStyle = "rgba(0, 0, 255, 0.25)";
+			ctx.strokeStyle = $theme["editor-selection-border-color"];
+			ctx.fillStyle = $theme["editor-selection-background-color"];
 			ctx.lineWidth = 2;
 			ctx.setLineDash([3, 3]);
 			ctx.beginPath();
@@ -560,7 +563,7 @@
 	}
 
 	function drawGrid(){
-		ctx.fillStyle = "#aaaaaa";
+		ctx.fillStyle = $theme["editor-grid-color"];
 		ctx.beginPath();
 		switch($grid.type){
 		case editor.GridType.SQUARE:
@@ -609,12 +612,12 @@
 				transform.e + (skill.pos.x - 13) * transform.a,
 				transform.f + (skill.pos.y - 13) * transform.d,
 			);
-			jdenticon.drawIcon(ctx, skill.definition.icon, 26);
+			jdenticon.drawIcon(ctx, skill.definition.icon, 26, $theme["jdenticon-config"]);
 		}
 		ctx.restore();
 
-		ctx.strokeStyle = "#0000ff";
-		ctx.fillStyle = "rgba(0, 0, 255, 0.25)";
+		ctx.strokeStyle = $theme["editor-selection-border-color"];
+		ctx.fillStyle = $theme["editor-selection-background-color"];
 		ctx.lineWidth = 2;
 		ctx.setLineDash([3, 3]);
 		ctx.beginPath();
@@ -657,10 +660,10 @@
 	function drawArrow(start: editor.Position, end: editor.Position, type: editor.ConnectionType, direction: editor.ConnectionDirection){
 		switch(type){
 		case editor.ConnectionType.NORMAL:
-			ctx.strokeStyle = "#000000";
+			ctx.strokeStyle = $theme["editor-normal-connection-color"];
 			break;
 		case editor.ConnectionType.EXCLUSIVE:
-			ctx.strokeStyle = "#ff0000";
+			ctx.strokeStyle = $theme["editor-exclusive-connection-color"];
 			break;
 		}
 
@@ -676,10 +679,10 @@
 		if (direction === editor.ConnectionDirection.UNIDIRECTIONAL) {
 			switch(type){
 			case editor.ConnectionType.NORMAL:
-				ctx.fillStyle = "#000000";
+				ctx.fillStyle = $theme["editor-normal-connection-color"];
 				break;
 			case editor.ConnectionType.EXCLUSIVE:
-				ctx.fillStyle = "#ff0000";
+				ctx.fillStyle = $theme["editor-exclusive-connection-color"];
 				break;
 			}
 
@@ -722,9 +725,10 @@
 	}
 
 	$: {
-		$grid,
+		$grid;
 		$project;
 		$state;
+		$theme;
 
 		if(ctx !== undefined){
 			draw();

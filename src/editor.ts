@@ -1,18 +1,5 @@
-import { get, writable, type Writable } from "svelte/store";
-import * as jdenticon from "jdenticon";
-
-jdenticon.configure({
-    lightness: {
-        color: [0.4, 0.7],
-        grayscale: [0.4, 0.7]
-    },
-    saturation: {
-        color: 1.0,
-        grayscale: 0.5
-    },
-	padding: 0.0,
-	backColor: "#000"
-});
+import { get, readable, writable, type Readable, type Writable } from "svelte/store";
+import { PreferredTheme } from "./theme";
 
 export interface Position {
 	x: number,
@@ -75,6 +62,10 @@ export interface Project {
 	connections: Connection[];
 }
 
+export interface Settings {
+	theme: PreferredTheme;
+}
+
 export interface State {
 	selectedDefinition: Definition | null;
 	selectedConnectionType: ConnectionType;
@@ -87,6 +78,35 @@ export function groupById<T extends Identifiable>(array: T[]): Map<string, T> {
 
 export function randomIdentifier(): string {
 	return Array.from(Array(16), () => Math.floor(Math.random() * 36).toString(36)).join("");
+}
+
+export function saveSettings(settings: Settings) {
+	localStorage.setItem("settings", JSON.stringify(settings));
+}
+
+export function loadSettings(): Settings {
+	try {
+		const settingsJson: Record<string, unknown> = JSON.parse(localStorage.getItem("settings") ?? "");
+
+		let theme = PreferredTheme.AUTOMATIC;
+		switch(settingsJson.theme){
+			case "light":
+				theme = PreferredTheme.LIGHT;
+				break;
+			case "dark":
+				theme = PreferredTheme.DARK;
+				break;
+		}
+
+		return {
+			theme
+		};
+	} catch (e){
+		console.error(e);
+		return {
+			theme: PreferredTheme.AUTOMATIC
+		}
+	}
 }
 
 export function saveProject(project: Project) {
@@ -236,3 +256,24 @@ export function persistent<T>(save: (arg: T) => void, load: () => T): Writable<T
 		}
 	};
  }
+
+export function systemTheme(): Readable<PreferredTheme> {
+	return readable<PreferredTheme>(PreferredTheme.AUTOMATIC, set => {
+		if(window.matchMedia === undefined){
+			return () => {};
+		}
+
+		const query = window.matchMedia("(prefers-color-scheme: dark)");
+
+		const update = (dark: boolean) => set(dark ? PreferredTheme.DARK : PreferredTheme.LIGHT);
+		const listener = (match: MediaQueryListEvent) => update(match.matches);
+
+		update(query.matches);
+
+		query.addEventListener("change", listener);
+
+		return () => {
+			query.removeEventListener("change", listener);
+		}
+	});
+}

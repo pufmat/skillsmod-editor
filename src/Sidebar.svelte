@@ -7,6 +7,7 @@
 	import Spacer from "./lib/Spacer.svelte";
 	import VStack from "./lib/VStack.svelte";
     import Connections from "./Connections.svelte";
+    import Settings from "./Settings.svelte";
 </script>
 
 <div class="sidebar">
@@ -25,6 +26,10 @@
 	<fieldset>
 		<legend>Definitions</legend>
 		<Definitions />
+	</fieldset>
+	<fieldset>
+		<legend>Settings</legend>
+		<Settings />
 	</fieldset>
 	<fieldset>
 		<legend>Instructions</legend>
@@ -93,20 +98,20 @@
 	</fieldset>
 </div>
 
-<style>
+<style lang="scss">
 	.sidebar {
 		flex-shrink: 0;
-		background-color: #dddddd;
+		background-color: var(--sidebar-background-color);
+		border-right: 1px solid var(--sidebar-border-color);
 		width: 320px;
 		height: 100%;
 		padding: 4px;
 		overflow: auto;
-		border-right: 1px solid #888888;
 	}
 	fieldset{
 		margin: 0;
 		padding: 4px;
-		border: 1px solid #000000;
+		border: 1px solid var(--separator-color);;
 		margin: 4px 0;
 	}
 	legend {
@@ -122,7 +127,7 @@
 	kbd > kbd {
 		border-radius: 4px;
 		padding: 1px;
-		background-color: #cccccc;
-		border: 1px solid #888888;
+		background-color: var(--keybinding-background-color);
+		border: 1px solid var(--keybinding-border-color);
 	}
 </style>

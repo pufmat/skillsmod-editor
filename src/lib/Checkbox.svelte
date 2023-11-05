@@ -15,7 +15,7 @@
 	</label>
 </div>
 
-<style>
+<style lang="scss">
 	.checkbox-wrapper {
 		width: 100%;
 		height: 100%;
@@ -31,8 +31,8 @@
 		max-width: 100%;
 		max-height: 100%;
 		border-radius: 2px;
-		background-color: #ffffff;
-		border: 1px solid #888888;
+		background-color: var(--input-background-color);
+		border: 1px solid var(--input-border-color);
 		aspect-ratio: 1/1;
 		border-radius: 4px;
 		padding: 4px;
@@ -40,7 +40,7 @@
 	.checked {
 		width: 100%;
 		height: 100%;
-		background-color: #888888;
+		background-color: var(--input-check-mark-color);
 		border-radius: 50%;
 	}
 	label {

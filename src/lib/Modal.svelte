@@ -31,7 +31,8 @@
 		min-height: 100%;
 	}
 	.container {
-		background-color: #ffffff;
+		background-color: var(--background-color);
+		color: var(--text-color);
 		border-radius: 8px;
 	}
 	dialog {

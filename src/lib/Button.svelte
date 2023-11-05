@@ -2,12 +2,12 @@
 	<slot />
 </button>
 
-<style>
+<style lang="scss">
 	button {
 		flex: 1;
-		color: #000000;
-		background-color: #eeeeee;
-		border: 1px solid #888888;
+		color: inherit;
+		background-color: var(--button-background-color);
+		border: 1px solid var(--button-border-color);
 		border-radius: 4px;
 		padding: 3px;
 		outline: 0;
