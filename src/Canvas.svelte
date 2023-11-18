@@ -143,7 +143,9 @@
 			}
 			break;
 		case editor.Button.RIGHT:
-			toggleSkillAt(snapToGrid(transformedMouse), $state.selectedDefinition);
+			if($state.selectedDefinition !== null){
+				toggleSkillAt(snapToGrid(transformedMouse), $state.selectedDefinition);
+			}
 			break;
 		}
 
@@ -174,10 +176,14 @@
 	function keyUp(event: KeyboardEvent){
 		switch(event.key){
 		case "a":
-			createSkill(transformedMouse, $state.selectedDefinition);
+			if($state.selectedDefinition !== null){
+				createSkill(transformedMouse, $state.selectedDefinition);
+			}
 			return;
 		case "t":
-			toggleSkillAt(transformedMouse, $state.selectedDefinition);
+			if($state.selectedDefinition !== null){
+				toggleSkillAt(transformedMouse, $state.selectedDefinition);
+			}
 			return;
 		case "c":
 			toggleConnectionAt(transformedMouse, $state.selectedConnectionType, $state.selectedConnectionDirection);
@@ -194,8 +200,10 @@
 
 		switch(lowerCaseKey){
 		case "e":
-			for(const skill of skills){
-				editSkill(skill, $state.selectedDefinition);
+			if($state.selectedDefinition !== null){
+				for(const skill of skills){
+					editSkill(skill, $state.selectedDefinition);
+				}
 			}
 			break;
 		case "d":
@@ -229,7 +237,7 @@
 		return $project.skills.find((skill) => isMouseInsideSkill(mouse, skill)) ?? null
 	}
 
-	function createSkill(pos: editor.Position, definition: editor.Definition | null): boolean {
+	function createSkill(pos: editor.Position, definition: editor.Definition): boolean {
 		const snappedPos = snapToGrid(pos);
 
 		if(getSkillAt(snappedPos) !== null){
@@ -239,10 +247,10 @@
 		let name: string;
 		do{
 			name = editor.randomIdentifier();
-		}while($project.skills.some(skill => skill.name === name));
+		}while($project.skills.some(skill => skill.id === name));
 
 		$project.skills.push({
-			name,
+			id: name,
 			definition,
 			pos: snappedPos,
 			root: false
@@ -268,7 +276,7 @@
 		return true;
 	}
 
-	function editSkill(skill: editor.Skill, definition: editor.Definition | null): boolean {
+	function editSkill(skill: editor.Skill, definition: editor.Definition): boolean {
 		if(skill.definition !== definition){
 			skill.definition = definition;
 			return true;
@@ -276,7 +284,7 @@
 		return false;
 	}
 
-	function toggleSkillAt(pos: editor.Position, definition: editor.Definition | null){
+	function toggleSkillAt(pos: editor.Position, definition: editor.Definition){
 		const hoveredSkill = getHoveredSkill(pos);
 		if(hoveredSkill !== null){
 			if(editSkill(hoveredSkill, definition)){
@@ -502,11 +510,8 @@
 
 	function updateTooltip(){
 		for(const skill of $project.skills){
-			if(skill.definition === null){
-				continue;
-			}
 			if(isMouseInsideSkill(transformedMouse, skill)){
-				tooltipElement.innerText = skill.definition.name;
+				tooltipElement.innerText = skill.definition.id;
 				tooltipElement.style.visibility = "visible";
 				tooltipElement.style.left = mouse.x + "px";
 				tooltipElement.style.top = mouse.y + "px";
@@ -584,26 +589,9 @@
 	}
 
 	function drawSkills(){
-		ctx.fillStyle = "#000000";
-		ctx.beginPath();
-		for(const skill of $project.skills){
-			if(skill.definition !== null){
-				continue;
-			}
-			if(skill.root){
-				addCircle(skill.pos.x, skill.pos.y, 13);
-			}else{
-				ctx.rect(skill.pos.x - 13, skill.pos.y - 13, 26, 26);
-			}
-		}
-		ctx.fill();
-
 		ctx.save();
 		ctx.beginPath();
 		for(const skill of $project.skills){
-			if(skill.definition === null){
-				continue;
-			}
 			if(skill.root){
 				addCircle(skill.pos.x, skill.pos.y, 13);
 			}else{
@@ -613,9 +601,6 @@
 		ctx.clip();
 		const transform = ctx.getTransform();
 		for(const skill of $project.skills){
-			if(skill.definition === null){
-				continue;
-			}
 			ctx.setTransform(
 				transform.a,
 				transform.b,

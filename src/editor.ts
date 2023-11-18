@@ -19,15 +19,17 @@ export interface Position {
 	y: number
 }
 
-export interface Definition {
-	name: string,
+export interface Identifiable {
+	id: string,
+}
+
+export interface Definition extends Identifiable {
 	icon: string,
 	data: string
 }
 
-export interface Skill {
-	name: string,
-	definition: Definition | null,
+export interface Skill extends Identifiable {
+	definition: Definition,
 	pos: Position,
 	root: boolean
 }
@@ -68,7 +70,7 @@ export interface Grid {
 }
 
 export interface Project {
-	definitions: Map<string, Definition>;
+	definitions: Definition[];
 	skills: Skill[];
 	connections: Connection[];
 }
@@ -79,28 +81,36 @@ export interface State {
 	selectedConnectionDirection: ConnectionDirection;
 }
 
+export function groupById<T extends Identifiable>(array: T[]): Map<string, T> {
+	return new Map(array.map(item => [item.id, item]));
+}
+
+export function randomIdentifier(): string {
+	return Array.from(Array(16), () => Math.floor(Math.random() * 36).toString(36)).join("");
+}
+
 export function saveProject(project: Project) {
 	const definitionsJson = Array.from(project.definitions.values()).reduce((json, definition) => {
-		json[definition.name] = {
+		json[definition.id] = {
 			data: definition.data,
 			icon: definition.icon
 		};
 		return json;
-	}, {} as { [key: string]: unknown });
+	}, {} as Record<string, unknown>);
 	const skillsJson = project.skills.reduce((json, skill) => {
-		json[skill.name] = {
-			definition: skill.definition?.name ?? null,
+		json[skill.id] = {
+			definition: skill.definition.id,
 			x: skill.pos.x,
 			y: skill.pos.y,
 			root: skill.root
 		};
 		return json;
-	}, {} as { [key: string]: unknown });
+	}, {} as Record<string, unknown>);
 	const connectionsJson = project.connections.map(connection => {
 		return {
 			type: connection.type.toString(),
 			direction: connection.direction.toString(),
-			skills: connection.skills.map(skill => skill.name)
+			skills: connection.skills.map(skill => skill.id)
 		}
 	});
 
@@ -115,25 +125,29 @@ export function loadProject(): Project {
 		const skillsJson: object = JSON.parse(localStorage.getItem("skills") ?? "");
 		const connectionsJson: object = JSON.parse(localStorage.getItem("connections") ?? "");
 
-		const definitions = new Map(Object.entries(definitionsJson).map(([name, {icon, data}]) => [
-			name, {name, icon, data}
-		]));
+		const definitions = Object.entries(definitionsJson)
+			.map(([id, {icon, data}]) => ({id, icon, data}));
 
-		const skillsMap = new Map<string, Skill>;
+		const definitionsMap = groupById(definitions);
 
-		const skills = Object.entries(skillsJson).map(([name, data]) => {
-			const skill: Skill = {
-				name,
-				definition: definitions.get(data.definition) ?? null,
+		const skills = Object.entries(skillsJson).map(([id, data]) => {
+			return {
+				id,
+				definition: definitionsMap.get(data.definition),
 				pos: {
 					x: data.x,
 					y: data.y
 				},
 				root: data.root,
 			};
-			skillsMap.set(skill.name, skill);
-			return skill;
+		}).filter((skill): skill is Skill => {
+			if(skill.definition === undefined){
+				return false;
+			}
+			return true;
 		});
+
+		const skillsMap = groupById(skills);
 
 		const connections = Object.values(connectionsJson).map(connection => {
 			if(Array.isArray(connection)){
@@ -149,20 +163,20 @@ export function loadProject(): Project {
 					skills: connection.skills.map((id: string) => skillsMap.get(id))
 				};
 			}
-		}).flatMap(connection => {
+		}).filter((connection): connection is Connection => {
 			if(connection.skills.length !== 2){
-				return [];
+				return false;
 			}
 			if(connection.skills[0] === undefined){
-				return [];
+				return false;
 			}
 			if(connection.skills[1] === undefined){
-				return [];
+				return false;
 			}
 			if(connection.skills[0] === connection.skills[1]){
-				return [];
+				return false;
 			}
-			return [connection];
+			return true;
 		});
 
 		return {
@@ -171,29 +185,26 @@ export function loadProject(): Project {
 			connections
 		};
 	} catch (e){
-		console.log(e);
+		console.error(e);
 		return {
-			definitions: new Map(),
+			definitions: [],
 			skills: [],
 			connections: []
 		};
 	}
 }
 
-export function randomIdentifier(): string {
-	return Array.from(Array(16), () => Math.floor(Math.random() * 36).toString(36)).join("");
-}
-
 export async function readJson(file: File): Promise<unknown> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
 		reader.onload = () => {
-			if(typeof reader.result === "string"){
-				resolve(JSON.parse(reader.result));
-			}else{
-				reject();
+			try{
+				resolve(JSON.parse(reader.result as string));
+			}catch(error){
+				reject(error);
 			}
 		};
+		reader.onerror = () => reject(reader.error);
 		reader.readAsText(file);
 	});
 }

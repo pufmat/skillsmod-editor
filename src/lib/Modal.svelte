@@ -14,15 +14,33 @@
 	}
 </script>
 
-<dialog bind:this={dialog}>
-	<slot />
+<dialog bind:this={dialog} on:close={() => visible = false}>
+	<div class="wrapper">
+		<div class="container">
+			<slot />
+		</div>
+	</div>
 </dialog>
 
 <style lang="scss">
-	dialog {
+	.wrapper {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-width: 100%;
+		min-height: 100%;
+	}
+	.container {
 		background-color: #ffffff;
 		border-radius: 8px;
-		padding: 0;
+	}
+	dialog {
+		background-color: transparent;
+		width: 100%;
+		height: 100%;
+		max-width: 100%;
+		max-height: 100%;
+		padding: 16px;
 		border: 0;
 	}
 	dialog::backdrop {

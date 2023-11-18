@@ -3,92 +3,113 @@
 	import Button from "./lib/Button.svelte";
 	import TextInput from "./lib/TextInput.svelte";
 	import Radio from "./lib/Radio.svelte";
-	import Modal from "./lib/Modal.svelte";
-	import HStack from "./lib/HStack.svelte";
-	import Spacer from "./lib/Spacer.svelte";
 	import Text from "./lib/Text.svelte";
-	import VStack from "./lib/VStack.svelte";
-	import Padding from "./lib/Padding.svelte";
     import type { Writable } from "svelte/store";
     import { getContext } from "svelte";
     import HashIcon from "./lib/HashIcon.svelte";
+    import EditDefinitionModal from "./modal/EditDefinitionModal.svelte";
+    import MergeDefinitionsModal from "./modal/MergeDefinitionsModal.svelte";
+    import type { State as EditDefinitionModalState } from "./modal/EditDefinitionModal.svelte";
+    import type { State as MergeDefinitionsModalState } from "./modal/MergeDefinitionsModal.svelte";
 
 
 	let project = getContext<Writable<editor.Project>>("project");
 	let state = getContext<Writable<editor.State>>("state");
 
-	let modalDefinition: editor.Definition;
-	let modalVisible: boolean;
-	let newName: string;
+	let editDefinitionModalState: EditDefinitionModalState | null = null;
+	let mergeDefinitionsModalState: MergeDefinitionsModalState | null = null;
 
-	function rename(){
-		if(modalDefinition === null){
+	function confirmEditDefinition(){
+		if(editDefinitionModalState !== null){
+			tryEditDefinition(
+				editDefinitionModalState.definition,
+				editDefinitionModalState.newId
+			);
+			editDefinitionModalState = null;
+		}
+	}
+
+	function confirmMergeDefinitions(){
+		if(mergeDefinitionsModalState !== null){
+			tryMergeDefinitions(
+				mergeDefinitionsModalState.definition,
+				mergeDefinitionsModalState.newId
+			);
+			mergeDefinitionsModalState = null;
+		}
+	}
+
+	function tryEditDefinition(definition: editor.Definition, newId: string){
+		if(definition.id === newId){
 			return;
 		}
 
-		$project.definitions.delete(modalDefinition.name);
-		const newDefinition = $project.definitions.get(newName);
+		if($project.definitions.some(definition => definition.id === newId)){
+			mergeDefinitionsModalState = {
+				definition: definition,
+				newId: newId
+			};
+			return;
+		}
+
+		definition.id = newId;
+
+		forceApplyDefinitions($project.definitions);
+	}
+
+	function tryMergeDefinitions(definition: editor.Definition, newId: string){
+		const newDefinition = $project.definitions.find(definition => definition.id === newId);
 		if(newDefinition === undefined){
-			modalDefinition.name = newName;
-			$project.definitions.set(newName, modalDefinition);
-		}else{
-			for(const skill of $project.skills){
-				if(skill.definition === modalDefinition){
-					skill.definition = newDefinition;
-				}
+			return;
+		}
+
+		$project.definitions.splice($project.definitions.indexOf(definition), 1);
+
+		for(const skill of $project.skills){
+			if(skill.definition === definition){
+				skill.definition = newDefinition;
 			}
 		}
 
-		modalVisible = false;
-
-		$project.definitions = $project.definitions;
+		forceApplyDefinitions($project.definitions);
 	}
 
 	function changeIcon(definition: editor.Definition){
 		definition.icon = editor.randomIdentifier();
-		$project.definitions = $project.definitions;
+		forceApplyDefinitions($project.definitions);
 	}
 
-	function openModal(definition: editor.Definition){
-		newName = definition.name;
-		modalDefinition = definition;
-		modalVisible = true;
+	function forceApplyDefinitions(newDefinitions: editor.Definition[]){
+		$project.definitions = newDefinitions;
+	}
+
+	function editDefinition(definition: editor.Definition){
+		editDefinitionModalState = {
+			definition: definition,
+			newId: definition.id
+		};
 	}
 
 	$: {
-		if(Array.from($project.definitions.values()).find(definition => definition === $state.selectedDefinition) === undefined){
-			$state.selectedDefinition = $project.definitions.values().next().value ?? null;
+		if($project.definitions.find(definition => definition === $state.selectedDefinition) === undefined){
+			$state.selectedDefinition = $project.definitions[0] ?? null;
 		}
 	}
 </script>
 
 <div class="container">
-	{#each Array.from($project.definitions.values()) as definition}
+	{#each $project.definitions as definition}
 		<Radio on:click={() => $state.selectedDefinition = definition} checked={definition === $state.selectedDefinition} />
-		<TextInput value={definition.name} disabled={true} />
+		<TextInput value={definition.id} disabled={true} />
 		<Button on:click={() => changeIcon(definition)}>
 			<HashIcon bind:value={definition.icon}/>
 		</Button>
-		<Button on:click={() => openModal(definition)}><Text>Edit</Text></Button>
+		<Button on:click={() => editDefinition(definition)}><Text>Edit</Text></Button>
 	{/each}
 </div>
 
-<Modal visible={modalVisible}>
-	<Padding padding="16px">
-		<VStack gap="16px">
-			<HStack gap="8px">
-				<Text>New name:</Text>
-				<Spacer>
-					<TextInput bind:value={newName} />
-				</Spacer>
-			</HStack>
-			<HStack gap="2px">
-				<Button on:click={() => modalVisible = false}><Text>Cancel</Text></Button>
-				<Button on:click={rename}><Text>Save</Text></Button>
-			</HStack>
-		</VStack>
-	</Padding>
-</Modal>
+<EditDefinitionModal bind:state={editDefinitionModalState} onConfirm={confirmEditDefinition} />
+<MergeDefinitionsModal bind:state={mergeDefinitionsModalState} onConfirm={confirmMergeDefinitions} />
 
 <style lang="scss">
 	.container{

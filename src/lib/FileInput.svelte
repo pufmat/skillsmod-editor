@@ -1,17 +1,17 @@
 <script lang="ts">
-	let files: FileList | undefined;
-	export let file: File | undefined = undefined;
+	let files: FileList | null;
+	export let file: File | null = null;
 
-	$: file = files && files.length > 0 ? files[0] : undefined;
+	$: file = (files && files.length > 0) ? (files[0] ?? null) : null;
 </script>
 
 <div class="file-input">
 	<label>
 		<input type="file" bind:files on:input>
-		{#if file === undefined}
-		<div class="file-picker">Choose a file...</div>
+		{#if file === null}
+			<div class="file-picker">Choose a file...</div>
 		{:else}
-		<div class="file-picker">{file.name}</div>
+			<div class="file-picker">{file.name}</div>
 		{/if}
 	</label>
 </div>
