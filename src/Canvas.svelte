@@ -177,6 +177,12 @@
 	}
 
 	function keyUp(event: KeyboardEvent){
+		for(const dialog of document.getElementsByTagName("dialog")){
+			if(dialog.open){
+				return;
+			}
+		}
+
 		switch(event.key){
 		case "a":
 			if($state.selectedDefinition !== null){
