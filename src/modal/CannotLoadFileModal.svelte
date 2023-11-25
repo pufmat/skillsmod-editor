@@ -1,9 +1,9 @@
 <script lang="ts">
-    import Button from "../lib/Button.svelte";
-    import Modal from "../lib/Modal.svelte";
-    import Padding from "../lib/Padding.svelte";
-    import Text from "../lib/Text.svelte";
-    import VStack from "../lib/VStack.svelte";
+	import Button from "../lib/Button.svelte";
+	import Modal from "../lib/Modal.svelte";
+	import Padding from "../lib/Padding.svelte";
+	import Text from "../lib/Text.svelte";
+	import VStack from "../lib/VStack.svelte";
 
 	export let state: State | null;
 </script>

@@ -6,7 +6,10 @@ module.exports = {
 		"plugin:svelte/recommended"
 	],
 	parser: "@typescript-eslint/parser",
-	plugins: ["@typescript-eslint"],
+	plugins: [
+		"@typescript-eslint",
+		"@stylistic/js"
+	],
 	parserOptions: {
 		sourceType: "module",
 		ecmaVersion: 2020,
@@ -27,6 +30,7 @@ module.exports = {
 		}
 	],
 	rules: {
-		eqeqeq: ["error", "always"]
+		"@stylistic/js/indent": ["error", "tab"],
+		"eqeqeq": ["error", "always"]
 	}
 };

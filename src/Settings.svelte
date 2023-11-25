@@ -4,9 +4,9 @@
 	import Spacer from "./lib/Spacer.svelte";
 	import Text from "./lib/Text.svelte";
 	import type { Writable } from "svelte/store";
-    import { getContext } from "svelte";
-    import Select from "./lib/Select.svelte";
-    import { PreferredTheme } from "./theme";
+	import { getContext } from "svelte";
+	import Select from "./lib/Select.svelte";
+	import { PreferredTheme } from "./theme";
 
 	let settings = getContext<Writable<editor.Settings>>("settings");
 

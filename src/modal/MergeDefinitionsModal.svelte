@@ -1,17 +1,17 @@
 <script lang="ts">
-    import Button from "../lib/Button.svelte";
-    import HStack from "../lib/HStack.svelte";
-    import Modal from "../lib/Modal.svelte";
-    import Padding from "../lib/Padding.svelte";
-    import Text from "../lib/Text.svelte";
-    import VStack from "../lib/VStack.svelte";
+	import Button from "../lib/Button.svelte";
+	import HStack from "../lib/HStack.svelte";
+	import Modal from "../lib/Modal.svelte";
+	import Padding from "../lib/Padding.svelte";
+	import Text from "../lib/Text.svelte";
+	import VStack from "../lib/VStack.svelte";
 
 	export let state: State | null;
 	export let onConfirm: () => void;
 </script>
 
 <script lang="ts" context="module">
-    import type * as editor from "../editor";
+	import type * as editor from "../editor";
 
 	export interface State {
 		definition: editor.Definition;

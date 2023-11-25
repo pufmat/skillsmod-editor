@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as jdenticon from "jdenticon";
-    import { activeTheme } from "../theme";
+	import { activeTheme } from "../theme";
 
 	const theme = activeTheme();
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { getContext } from "svelte";
-    import type { Writable } from "svelte/store";
+	import { getContext } from "svelte";
+	import type { Writable } from "svelte/store";
 	import * as editor from "./editor"
 	import HStack from "./lib/HStack.svelte";
 	import IntegerInput from "./lib/IntegerInput.svelte";

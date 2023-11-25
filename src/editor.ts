@@ -90,12 +90,12 @@ export function loadSettings(): Settings {
 
 		let theme = PreferredTheme.AUTOMATIC;
 		switch(settingsJson.theme){
-			case "light":
-				theme = PreferredTheme.LIGHT;
-				break;
-			case "dark":
-				theme = PreferredTheme.DARK;
-				break;
+		case "light":
+			theme = PreferredTheme.LIGHT;
+			break;
+		case "dark":
+			theme = PreferredTheme.DARK;
+			break;
 		}
 
 		return {
@@ -255,7 +255,7 @@ export function persistent<T>(save: (arg: T) => void, load: () => T): Writable<T
 			store.set(newValue);
 		}
 	};
- }
+}
 
 export function systemTheme(): Readable<PreferredTheme> {
 	return readable<PreferredTheme>(PreferredTheme.AUTOMATIC, set => {

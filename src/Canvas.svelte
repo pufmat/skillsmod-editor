@@ -479,7 +479,7 @@
 			};
 		case editor.GridType.HEX_FLAT:
 		case editor.GridType.HEX_POINTY:
-			{
+			return (() => {
 				let i;
 				let j;
 
@@ -508,7 +508,7 @@
 				}else{
 					return {x: j, y: i};
 				}
-			}
+			})();
 		}
 	}
 

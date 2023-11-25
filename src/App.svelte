@@ -1,16 +1,16 @@
 <script lang="ts">
 	import * as editor from "./editor";
 	import Canvas from "./Canvas.svelte";
-    import Sidebar from "./Sidebar.svelte";
-    import { writable } from "svelte/store";
-    import { setContext } from "svelte";
-    import { FallbackTheme, applyTheme } from "./theme";
+	import Sidebar from "./Sidebar.svelte";
+	import { writable } from "svelte/store";
+	import { setContext } from "svelte";
+	import { FallbackTheme, applyTheme } from "./theme";
 
 	setContext("grid", writable<editor.Grid>({
 		type: editor.GridType.SQUARE,
 		spacing: 32,
 		size: 8
-    }));
+	}));
 
 	setContext("project", editor.persistent<editor.Project>(editor.saveProject, editor.loadProject));
 

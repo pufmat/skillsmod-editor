@@ -6,8 +6,8 @@
 	import HStack from "./lib/HStack.svelte";
 	import Spacer from "./lib/Spacer.svelte";
 	import VStack from "./lib/VStack.svelte";
-    import Connections from "./Connections.svelte";
-    import Settings from "./Settings.svelte";
+	import Connections from "./Connections.svelte";
+	import Settings from "./Settings.svelte";
 </script>
 
 <div class="sidebar">

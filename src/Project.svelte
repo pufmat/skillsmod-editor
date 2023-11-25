@@ -6,19 +6,19 @@
 	import Spacer from "./lib/Spacer.svelte";
 	import Text from "./lib/Text.svelte";
 	import Divider from "./lib/Divider.svelte";
-    import Checkbox from "./lib/Checkbox.svelte";
-    import type { Writable } from "svelte/store";
-    import { getContext } from "svelte";
-    import CannotLoadFileModal from "./modal/CannotLoadFileModal.svelte";
-    import type { State as InvalidFileModalState } from "./modal/CannotLoadFileModal.svelte";
-    import RemoveSkillsMissingDefinitionsModal from "./modal/RemoveSkillsMissingDefinitionsModal.svelte";
-    import RemoveConnectionsMissingSkillsModal from "./modal/RemoveConnectionsMissingSkillsModal.svelte";
-    import IgnoreSkillsMissingDefinitionsModal from "./modal/IgnoreSkillsMissingDefinitionsModal.svelte";
-    import IgnoreConnectionsMissingSkillsModal from "./modal/IgnoreConnectionsMissingSkillsModal.svelte";
-    import type { State as RemoveSkillsMissingDefinitionsModalState } from "./modal/RemoveSkillsMissingDefinitionsModal.svelte";
-    import type { State as RemoveConnectionsMissingSkillsModalState } from "./modal/RemoveConnectionsMissingSkillsModal.svelte";
-    import type { State as IgnoreSkillsMissingDefinitionsModalState } from "./modal/IgnoreSkillsMissingDefinitionsModal.svelte";
-    import type { State as IgnoreConnectionsMissingSkillsModalState } from "./modal/IgnoreConnectionsMissingSkillsModal.svelte";
+	import Checkbox from "./lib/Checkbox.svelte";
+	import type { Writable } from "svelte/store";
+	import { getContext } from "svelte";
+	import CannotLoadFileModal from "./modal/CannotLoadFileModal.svelte";
+	import type { State as InvalidFileModalState } from "./modal/CannotLoadFileModal.svelte";
+	import RemoveSkillsMissingDefinitionsModal from "./modal/RemoveSkillsMissingDefinitionsModal.svelte";
+	import RemoveConnectionsMissingSkillsModal from "./modal/RemoveConnectionsMissingSkillsModal.svelte";
+	import IgnoreSkillsMissingDefinitionsModal from "./modal/IgnoreSkillsMissingDefinitionsModal.svelte";
+	import IgnoreConnectionsMissingSkillsModal from "./modal/IgnoreConnectionsMissingSkillsModal.svelte";
+	import type { State as RemoveSkillsMissingDefinitionsModalState } from "./modal/RemoveSkillsMissingDefinitionsModal.svelte";
+	import type { State as RemoveConnectionsMissingSkillsModalState } from "./modal/RemoveConnectionsMissingSkillsModal.svelte";
+	import type { State as IgnoreSkillsMissingDefinitionsModalState } from "./modal/IgnoreSkillsMissingDefinitionsModal.svelte";
+	import type { State as IgnoreConnectionsMissingSkillsModalState } from "./modal/IgnoreConnectionsMissingSkillsModal.svelte";
 
 	let project = getContext<Writable<editor.Project>>("project");
 

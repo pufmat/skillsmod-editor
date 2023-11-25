@@ -4,13 +4,13 @@
 	import TextInput from "./lib/TextInput.svelte";
 	import Radio from "./lib/Radio.svelte";
 	import Text from "./lib/Text.svelte";
-    import type { Writable } from "svelte/store";
-    import { getContext } from "svelte";
-    import HashIcon from "./lib/HashIcon.svelte";
-    import EditDefinitionModal from "./modal/EditDefinitionModal.svelte";
-    import MergeDefinitionsModal from "./modal/MergeDefinitionsModal.svelte";
-    import type { State as EditDefinitionModalState } from "./modal/EditDefinitionModal.svelte";
-    import type { State as MergeDefinitionsModalState } from "./modal/MergeDefinitionsModal.svelte";
+	import type { Writable } from "svelte/store";
+	import { getContext } from "svelte";
+	import HashIcon from "./lib/HashIcon.svelte";
+	import EditDefinitionModal from "./modal/EditDefinitionModal.svelte";
+	import MergeDefinitionsModal from "./modal/MergeDefinitionsModal.svelte";
+	import type { State as EditDefinitionModalState } from "./modal/EditDefinitionModal.svelte";
+	import type { State as MergeDefinitionsModalState } from "./modal/MergeDefinitionsModal.svelte";
 
 
 	let project = getContext<Writable<editor.Project>>("project");
