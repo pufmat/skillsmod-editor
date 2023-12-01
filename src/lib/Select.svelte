@@ -15,6 +15,7 @@
 		border-radius: 4px;
 		padding: 3px 6px;
 		font-size: 16px;
+		text-overflow: ellipsis;
 		cursor: pointer;
 	}
 </style>
