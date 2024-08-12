@@ -2,18 +2,29 @@
 	let files: FileList | null;
 	export let file: File | null = null;
 
-	$: file = (files && files.length > 0) ? (files[0] ?? null) : null;
+	let formElement: HTMLFormElement;
+
+	$: {
+		if (files && files.length > 0) {
+			file = files[0] ?? null;
+			formElement.reset();
+		} else {
+			file = null;
+		}
+	}
 </script>
 
 <div class="file-input">
-	<label>
-		<input type="file" bind:files on:input>
-		{#if file === null}
-			<div class="file-picker">Choose a file...</div>
-		{:else}
-			<div class="file-picker">{file.name}</div>
-		{/if}
-	</label>
+	<form bind:this={formElement}>
+		<label>
+			<input type="file" bind:files>
+			{#if file === null}
+				<div class="file-picker">Choose a file...</div>
+			{:else}
+				<div class="file-picker">{file.name}</div>
+			{/if}
+		</label>
+	</form>
 </div>
 
 <style lang="scss">
