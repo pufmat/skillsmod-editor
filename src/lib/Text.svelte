@@ -12,5 +12,10 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		overflow: hidden;
+	}
+	span {
+		text-overflow: ellipsis;
+		overflow: hidden;
 	}
 </style>

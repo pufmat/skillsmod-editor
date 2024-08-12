@@ -12,6 +12,7 @@
 		padding: 3px;
 		outline: 0;
 		font-size: 0;
+		overflow: hidden;
 		cursor: pointer;
 	}
 </style>

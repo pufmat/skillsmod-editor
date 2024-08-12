@@ -1,7 +1,6 @@
 <script lang="ts">
 	import * as editor from "./editor";
 	import Button from "./lib/Button.svelte";
-	import TextInput from "./lib/TextInput.svelte";
 	import Radio from "./lib/Radio.svelte";
 	import Text from "./lib/Text.svelte";
 	import type { Writable } from "svelte/store";
@@ -11,6 +10,8 @@
 	import MergeDefinitionsModal from "./modal/MergeDefinitionsModal.svelte";
 	import type { State as EditDefinitionModalState } from "./modal/EditDefinitionModal.svelte";
 	import type { State as MergeDefinitionsModalState } from "./modal/MergeDefinitionsModal.svelte";
+	import Spacer from "./lib/Spacer.svelte";
+	import HStack from "./lib/HStack.svelte";
 
 
 	let project = getContext<Writable<editor.Project>>("project");
@@ -100,7 +101,15 @@
 <div class="container">
 	{#each $project.definitions as definition}
 		<Radio on:click={() => $state.selectedDefinition = definition} checked={definition === $state.selectedDefinition} />
-		<TextInput value={definition.id} disabled={true} />
+		<Button on:click={() => $state.selectedDefinition = definition}>
+			<HStack>
+				<Text>{definition.id}</Text>
+				<Spacer />
+			</HStack>
+		</Button>
+		<Button on:click={() => $state.selectedDefinition = definition}>
+			<Text>{$project.skills.filter(s => s.definition === definition).length.toString()}</Text>
+		</Button>
 		<Button on:click={() => changeIcon(definition)}>
 			<HashIcon bind:value={definition.icon}/>
 		</Button>
@@ -114,7 +123,7 @@
 <style lang="scss">
 	.container{
 		display: grid;
-		grid-template-columns: 27px 1fr 27px auto;
+		grid-template-columns: 27px 1fr min-content 27px min-content;
 		gap: 2px;
 	}
 </style>
