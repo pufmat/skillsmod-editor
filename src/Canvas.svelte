@@ -731,10 +731,8 @@
 	}
 
 	$: {
-		$grid;
-		$project;
-		$state;
-		$theme;
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		($grid, $project, $state, $theme);
 
 		if(ctx !== undefined){
 			draw();
