@@ -16,6 +16,7 @@
 	export interface State {
 		definition: editor.Definition;
 		newId: string;
+		newIcon: string;
 	}
 </script>
 

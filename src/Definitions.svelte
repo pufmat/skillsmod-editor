@@ -24,7 +24,8 @@
 		if(editDefinitionModalState !== null){
 			tryEditDefinition(
 				editDefinitionModalState.definition,
-				editDefinitionModalState.newId
+				editDefinitionModalState.newId,
+				editDefinitionModalState.newIcon
 			);
 			editDefinitionModalState = null;
 		}
@@ -34,21 +35,25 @@
 		if(mergeDefinitionsModalState !== null){
 			tryMergeDefinitions(
 				mergeDefinitionsModalState.definition,
-				mergeDefinitionsModalState.newId
+				mergeDefinitionsModalState.newId,
+				mergeDefinitionsModalState.newIcon
 			);
 			mergeDefinitionsModalState = null;
 		}
 	}
 
-	function tryEditDefinition(definition: editor.Definition, newId: string){
+	function tryEditDefinition(definition: editor.Definition, newId: string, newIcon: string){
+		definition.icon = newIcon;
+
 		if(definition.id === newId){
 			return;
 		}
 
 		if($project.definitions.some(definition => definition.id === newId)){
 			mergeDefinitionsModalState = {
-				definition: definition,
-				newId: newId
+				definition,
+				newId,
+				newIcon
 			};
 			return;
 		}
@@ -58,7 +63,7 @@
 		forceApplyDefinitions($project.definitions);
 	}
 
-	function tryMergeDefinitions(definition: editor.Definition, newId: string){
+	function tryMergeDefinitions(definition: editor.Definition, newId: string, newIcon: string){
 		const newDefinition = $project.definitions.find(definition => definition.id === newId);
 		if(newDefinition === undefined){
 			return;
@@ -72,11 +77,8 @@
 			}
 		}
 
-		forceApplyDefinitions($project.definitions);
-	}
+		newDefinition.icon = newIcon;
 
-	function changeIcon(definition: editor.Definition){
-		definition.icon = editor.randomIdentifier();
 		forceApplyDefinitions($project.definitions);
 	}
 
@@ -86,8 +88,9 @@
 
 	function editDefinition(definition: editor.Definition){
 		editDefinitionModalState = {
-			definition: definition,
-			newId: definition.id
+			definition,
+			newId: definition.id,
+			newIcon: definition.icon
 		};
 	}
 
@@ -110,7 +113,7 @@
 		<Button on:click={() => $state.selectedDefinition = definition}>
 			<Text>{$project.skills.filter(s => s.definition === definition).length.toString()}</Text>
 		</Button>
-		<Button on:click={() => changeIcon(definition)}>
+		<Button on:click={() => $state.selectedDefinition = definition}>
 			<HashIcon bind:value={definition.icon}/>
 		</Button>
 		<Button on:click={() => editDefinition(definition)}><Text>Edit</Text></Button>
