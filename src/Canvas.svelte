@@ -598,16 +598,12 @@
 	}
 
 	function drawSkills(){
-		ctx.save();
-		ctx.beginPath();
-		for(const skill of $project.skills){
-			if(skill.root){
-				addCircle(skill.pos.x, skill.pos.y, 13);
-			}else{
-				ctx.rect(skill.pos.x - 13, skill.pos.y - 13, 26, 26);
-			}
-		}
-		ctx.clip();
+		ctx.strokeStyle = $theme["editor-root-border-color"];
+		ctx.fillStyle = $theme["editor-root-color"];
+		ctx.font = "bold 16px sans-serif";
+		ctx.textAlign = "center";
+		ctx.lineWidth = 4;
+		const metrics = ctx.measureText("R");
 		const transform = ctx.getTransform();
 		for(const skill of $project.skills){
 			ctx.setTransform(
@@ -619,8 +615,19 @@
 				transform.f + (skill.pos.y - 13) * transform.d,
 			);
 			jdenticon.drawIcon(ctx, skill.definition.icon, 26, $theme["jdenticon-config"]);
+			if(skill.root){
+				ctx.strokeText("R", 13, 13 + (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2);
+				ctx.fillText("R", 13, 13 + (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2);
+			}
 		}
-		ctx.restore();
+		ctx.setTransform(
+			transform.a,
+			transform.b,
+			transform.c,
+			transform.d,
+			transform.e,
+			transform.f
+		)
 
 		ctx.strokeStyle = $theme["editor-selection-border-color"];
 		ctx.fillStyle = $theme["editor-selection-background-color"];

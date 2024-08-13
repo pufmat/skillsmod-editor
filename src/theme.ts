@@ -41,6 +41,8 @@ export interface Theme {
 	"editor-selection-background-color": string;
 	"editor-selection-border-color": string;
 	"editor-grid-color": string;
+	"editor-root-border-color": string;
+	"editor-root-color": string;
 	"editor-normal-connection-color": string,
 	"editor-exclusive-connection-color": string;
 

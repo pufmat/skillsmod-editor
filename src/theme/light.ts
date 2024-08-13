@@ -24,6 +24,8 @@ const theme: Theme = {
 	"editor-selection-background-color": "rgba(0, 0, 255, 0.25)",
 	"editor-selection-border-color": "#00f",
 	"editor-grid-color": "#aaa",
+	"editor-root-border-color": "#000",
+	"editor-root-color": "#fff",
 	"editor-normal-connection-color": "#000",
 	"editor-exclusive-connection-color": "#f00",
 
