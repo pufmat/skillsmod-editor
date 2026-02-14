@@ -67,7 +67,7 @@ export interface Settings {
 	visibility: {
 		normal: boolean;
 		exclusive: boolean;
-	}
+	};
 }
 
 export interface State {
