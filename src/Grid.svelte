@@ -21,17 +21,32 @@
 		<option value={editor.GridType.SQUARE}>Square</option>
 		<option value={editor.GridType.HEX_FLAT}>Hex: Flat</option>
 		<option value={editor.GridType.HEX_POINTY}>Hex: Pointy</option>
+		<option value={editor.GridType.RADIAL}>Radial</option>
 	</Select>
-	<HStack>
-		<Text>Spacing:</Text>
-		<Spacer />
-	</HStack>
-	<IntegerInput bind:value={$grid.spacing} disabled={$grid.type === editor.GridType.NONE} />
-	<HStack>
-		<Text>Size:</Text>
-		<Spacer />
-	</HStack>
-	<IntegerInput bind:value={$grid.size} disabled={$grid.type === editor.GridType.NONE} />
+	{#if $grid.type !== editor.GridType.NONE}
+		<HStack>
+			<Text>Spacing:</Text>
+			<Spacer />
+		</HStack>
+		<IntegerInput bind:value={$grid.spacing} />
+		<HStack>
+			<Text>Size:</Text>
+			<Spacer />
+		</HStack>
+		<IntegerInput bind:value={$grid.size} />
+	{/if}
+	{#if $grid.type === editor.GridType.RADIAL}
+		<HStack>
+			<Text>Count:</Text>
+			<Spacer />
+		</HStack>
+		<IntegerInput bind:value={$grid.count} />
+		<HStack>
+			<Text>Group:</Text>
+			<Spacer />
+		</HStack>
+		<IntegerInput bind:value={$grid.group} />
+	{/if}
 </div>
 
 

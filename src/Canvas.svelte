@@ -526,6 +526,27 @@
 					return {x: j, y: i};
 				}
 			})();
+		case editor.GridType.RADIAL:
+			return (() => {
+				const i = Math.round(Math.hypot(pos.x, pos.y) / $grid.spacing);
+
+				if (i === 0) {
+					return {x: 0, y: 0};
+				}
+
+				const count = Math.ceil(i / $grid.group) * $grid.count;
+				if (!isFinite(count)) {
+					return pos;
+				}
+				const step = 2 * Math.PI / count;
+				const angle = Math.round(Math.atan2(pos.x, -pos.y) / step) * step;
+				const radius = i * $grid.spacing;
+
+				return {
+					x: radius * Math.sin(angle),
+					y: radius * -Math.cos(angle)
+				};
+			})();
 		}
 	}
 
@@ -607,6 +628,20 @@
 					}else{
 						addDot(i, k);
 					}
+				}
+			}
+			break;
+		case editor.GridType.RADIAL:
+			addDot(0, 0);
+			for(let i = 1; i <= $grid.size; i++){
+				const count = Math.ceil(i / $grid.group) * $grid.count;
+				if (!isFinite(count)) {
+					continue;
+				}
+				const step = 2 * Math.PI / count;
+				for(let j = 0; j < count; j++){
+					const angle = j * step;
+					addDot(i * Math.sin(angle), i * -Math.cos(angle));
 				}
 			}
 			break;

@@ -9,7 +9,9 @@
 	setContext("grid", writable<editor.Grid>({
 		type: editor.GridType.SQUARE,
 		spacing: 32,
-		size: 8
+		size: 8,
+		count: 6,
+		group: 1
 	}));
 
 	setContext("project", editor.persistent<editor.Project>(editor.saveProject, editor.loadProject));
