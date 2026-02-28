@@ -40,9 +40,13 @@ export enum ConnectionDirection {
 export enum GridType {
 	NONE,
 	SQUARE,
-	HEX_FLAT,
-	HEX_POINTY,
+	HEX,
 	RADIAL,
+}
+
+export enum GridOrient {
+	FLAT,
+	POINTY
 }
 
 export enum Button {
@@ -53,6 +57,7 @@ export enum Button {
 
 export interface Grid {
 	type: GridType;
+	orient: GridOrient
 	spacing: number;
 	size: number;
 	count: number;

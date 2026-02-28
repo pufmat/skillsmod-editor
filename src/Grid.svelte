@@ -19,11 +19,18 @@
 	<Select bind:value={$grid.type}>
 		<option value={editor.GridType.NONE}>None</option>
 		<option value={editor.GridType.SQUARE}>Square</option>
-		<option value={editor.GridType.HEX_FLAT}>Hex: Flat</option>
-		<option value={editor.GridType.HEX_POINTY}>Hex: Pointy</option>
+		<option value={editor.GridType.HEX}>Hex</option>
 		<option value={editor.GridType.RADIAL}>Radial</option>
 	</Select>
 	{#if $grid.type !== editor.GridType.NONE}
+		<HStack>
+			<Text>Orientation:</Text>
+			<Spacer />
+		</HStack>
+		<Select bind:value={$grid.orient}>
+			<option value={editor.GridOrient.FLAT}>Flat</option>
+			<option value={editor.GridOrient.POINTY}>Pointy</option>
+		</Select>
 		<HStack>
 			<Text>Spacing:</Text>
 			<Spacer />

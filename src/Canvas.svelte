@@ -490,17 +490,25 @@
 		case editor.GridType.NONE:
 			return pos;
 		case editor.GridType.SQUARE:
-			return {
-				x: Math.round(pos.x / $grid.spacing) * $grid.spacing,
-				y: Math.round(pos.y / $grid.spacing) * $grid.spacing
-			};
-		case editor.GridType.HEX_FLAT:
-		case editor.GridType.HEX_POINTY:
+			if($grid.orient === editor.GridOrient.FLAT){
+				return {
+					x: Math.round(pos.x / $grid.spacing) * $grid.spacing,
+					y: Math.round(pos.y / $grid.spacing) * $grid.spacing
+				};
+			} else {
+				const i = Math.round((pos.x + pos.y) * Math.SQRT1_2 / $grid.spacing);
+				const j = Math.round((pos.y - pos.x) * Math.SQRT1_2 / $grid.spacing);
+				return {
+					x: (i - j) * Math.SQRT1_2 * $grid.spacing,
+					y: (j + i) * Math.SQRT1_2 * $grid.spacing
+				};
+			}
+		case editor.GridType.HEX:
 			return (() => {
 				let i;
 				let j;
 
-				if($grid.type === editor.GridType.HEX_FLAT){
+				if($grid.orient === editor.GridOrient.FLAT){
 					i = pos.x;
 					j = pos.y;
 				}else{
@@ -520,7 +528,7 @@
 				i = l * s - m * s / 2;
 				j = -m * $grid.spacing;
 
-				if($grid.type === editor.GridType.HEX_FLAT){
+				if($grid.orient === editor.GridOrient.FLAT){
 					return {x: i, y: j};
 				}else{
 					return {x: j, y: i};
@@ -539,7 +547,8 @@
 					return pos;
 				}
 				const step = 2 * Math.PI / count;
-				const angle = Math.round(Math.atan2(pos.x, -pos.y) / step) * step;
+				const offset = $grid.orient === editor.GridOrient.FLAT ? step / 2 : 0;
+				const angle = Math.round((Math.atan2(pos.x, -pos.y) - offset) / step) * step + offset;
 				const radius = i * $grid.spacing;
 
 				return {
@@ -613,17 +622,20 @@
 		case editor.GridType.SQUARE:
 			for(let i = -$grid.size; i <= $grid.size; i++) {
 				for(let j = -$grid.size; j <= $grid.size; j++) {
-					addDot(i, j);
+					if($grid.orient === editor.GridOrient.FLAT){
+						addDot(i, j);
+					}else{
+						addDot((i - j) * Math.SQRT1_2, (j + i) * Math.SQRT1_2);
+					}
 				}
 			}
 			break;
-		case editor.GridType.HEX_FLAT:
-		case editor.GridType.HEX_POINTY:
+		case editor.GridType.HEX:
 			for(let i = -$grid.size; i <= $grid.size; i++) {
 				for(let j = Math.max(0, -i) - $grid.size; j <= Math.min(0, -i) + $grid.size; j++){
 					const k = (j + i / 2) * Math.sqrt(3) / 1.5
 
-					if($grid.type === editor.GridType.HEX_FLAT){
+					if($grid.orient === editor.GridOrient.FLAT){
 						addDot(k, i);
 					}else{
 						addDot(i, k);
@@ -639,8 +651,9 @@
 					continue;
 				}
 				const step = 2 * Math.PI / count;
+				const offset = $grid.orient === editor.GridOrient.FLAT ? step / 2 : 0;
 				for(let j = 0; j < count; j++){
-					const angle = j * step;
+					const angle = j * step + offset;
 					addDot(i * Math.sin(angle), i * -Math.cos(angle));
 				}
 			}
