@@ -233,18 +233,28 @@ export function loadProject(): Project {
 	}
 }
 
-export async function readJson(file: File): Promise<unknown> {
+export async function openJson(): Promise<unknown> {
 	return new Promise((resolve, reject) => {
-		const reader = new FileReader();
-		reader.onload = () => {
-			try{
-				resolve(JSON.parse(reader.result as string));
-			}catch(error){
-				reject(error);
+		const input = document.createElement("input");
+		input.type = "file";
+		input.accept = ".json,application/json";
+		input.onchange = () => {
+			if (input.files === null || input.files[0] === undefined) {
+				reject();
+				return;
 			}
-		};
-		reader.onerror = () => reject(reader.error);
-		reader.readAsText(file);
+			const reader = new FileReader();
+			reader.onload = () => {
+				try{
+					resolve(JSON.parse(reader.result as string));
+				}catch(error){
+					reject(error);
+				}
+			};
+			reader.onerror = () => reject(reader.error);
+			reader.readAsText(input.files[0]);
+		}
+		input.click();
 	});
 }
 

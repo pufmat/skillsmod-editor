@@ -1,7 +1,6 @@
 <script lang="ts">
 	import * as editor from "./editor";
 	import Button from "./lib/Button.svelte";
-	import FileInput from "./lib/FileInput.svelte";
 	import HStack from "./lib/HStack.svelte";
 	import Spacer from "./lib/Spacer.svelte";
 	import Text from "./lib/Text.svelte";
@@ -173,11 +172,7 @@
 	}
 
 	async function importDefinitions(){
-		if(definitionsFile === null){
-			return;
-		}
-
-		const definitionsJson = await editor.readJson(definitionsFile).catch(() => Promise.resolve(null));
+		const definitionsJson = await editor.openJson().catch(() => Promise.resolve(null));
 
 		if(definitionsJson === null || typeof definitionsJson !== "object"){
 			cannotLoadFileModalState = {
@@ -196,11 +191,7 @@
 	}
 
 	async function importSkills(){
-		if(skillsFile === null){
-			return;
-		}
-
-		const skillsJson = await editor.readJson(skillsFile).catch(() => Promise.resolve(null));
+		const skillsJson = await editor.openJson().catch(() => Promise.resolve(null));
 
 		if(skillsJson === null || typeof skillsJson !== "object"){
 			cannotLoadFileModalState = {
@@ -253,11 +244,7 @@
 	}
 
 	async function importConnections(){
-		if(connectionsFile === null){
-			return;
-		}
-
-		const connectionsJson = await editor.readJson(connectionsFile).catch(() => Promise.resolve(null));
+		const connectionsJson = await editor.openJson().catch(() => Promise.resolve(null));
 
 		if(connectionsJson === null || typeof connectionsJson !== "object"){
 			cannotLoadFileModalState = {
@@ -395,8 +382,6 @@
 		<Text>Definitions:</Text>
 		<Spacer />
 	</HStack>
-	<FileInput bind:file={definitionsFile} />
-	<Spacer />
 	<HStack gap="2px">
 		<Button on:click={importDefinitions}><Text>Import</Text></Button>
 		<Button on:click={exportDefinitions}><Text>Export</Text></Button>
@@ -405,8 +390,6 @@
 		<Text>Skills:</Text>
 		<Spacer />
 	</HStack>
-	<FileInput bind:file={skillsFile} />
-	<Spacer />
 	<HStack gap="2px">
 		<Button on:click={importSkills}><Text>Import</Text></Button>
 		<Button on:click={exportSkills}><Text>Export</Text></Button>
@@ -415,8 +398,6 @@
 		<Text>Connections:</Text>
 		<Spacer />
 	</HStack>
-	<FileInput bind:file={connectionsFile} />
-	<Spacer />
 	<HStack gap="2px">
 		<Button on:click={importConnections}><Text>Import</Text></Button>
 		<Button on:click={exportConnections}><Text>Export</Text></Button>
